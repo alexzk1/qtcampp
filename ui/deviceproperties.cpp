@@ -6,10 +6,6 @@
 #include <QDebug>
 #include <QTimer>
 
-v4l2device_ptr DeviceProperties::getCurrDevice() const
-{
-    return currDevice;
-}
 
 DeviceProperties::DeviceProperties(const v4l2device::device_info device, QWidget *parent):
     QWidget(parent)
@@ -116,29 +112,11 @@ DeviceProperties::DeviceProperties(const v4l2device::device_info device, QWidget
                 //that is what I need actually - I do not read actual current camera settings, I force to set my own stored in settings
                 connect(ptr.get(), &ISaveableWidget::valueChanged, this, [this, c, wp]()
                 {
-                    bool fl = (c.type & V4L2_CTRL_FLAG_HAS_PAYLOAD);//todo: when string/matrix processing will be added - fix here too, until that - ignoring
-
                     auto p = wp.lock();
-                    if(currDevice && p && !fl)
-                    {
-                        auto val = p->getAsVariant().toLongLong();
-                        if ((c.type & V4L2_CTRL_TYPE_MENU) || (c.type & V4L2_CTRL_TYPE_INTEGER_MENU))
-                        {
-                            GlobalComboBoxStorable* cb = dynamic_cast<GlobalComboBoxStorable*>(p.get());
-                            if (cb)
-                            {
-                                //now restoring device's index
-                                val = cb->getUserData(static_cast<int>(val)).toLongLong();
-                            }
-                        }
-                        int r = currDevice->setControlValue(c, val);
-#ifdef _DEBUG
-                        qDebug() <<"Value "<<val<<c.name<<c.id<<" set code: " << r;
-#endif
-                        if (r)
-                            tryReconnectOnError();
-                        updateControls();
-                    }
+                    //still lambda is connected to the event, because it allows to have copy of things easy without dancing with class memebers
+                    //(like c value here)
+                    controlValueChanged(p, c);
+
                 }, Qt::QueuedConnection);
 
                 ptr->setNewGroup(QString(device.devname.c_str()));
@@ -153,6 +131,39 @@ DeviceProperties::DeviceProperties(const v4l2device::device_info device, QWidget
         setLayout(layout);
     }
 }
+
+v4l2device_ptr DeviceProperties::getCurrDevice() const
+{
+    return currDevice;
+}
+
+void DeviceProperties::controlValueChanged(const DeviceProperties::widgetted_pt &p, const v4l2_query_ext_ctrl &c)
+{
+    //lambda in constructor grow too big, so moved part of it here
+    bool fl = (c.type & V4L2_CTRL_FLAG_HAS_PAYLOAD);//todo: when string/matrix processing will be added - fix here too, until that - ignoring
+
+    if(currDevice && p && !fl)
+    {
+        auto val = p->getAsVariant().toLongLong();
+        if ((c.type & V4L2_CTRL_TYPE_MENU) || (c.type & V4L2_CTRL_TYPE_INTEGER_MENU))
+        {
+            GlobalComboBoxStorable* cb = dynamic_cast<GlobalComboBoxStorable*>(p.get());
+            if (cb)
+            {
+                //now restoring device's index
+                val = cb->getUserData(static_cast<int>(val)).toLongLong();
+            }
+        }
+        int r = currDevice->setControlValue(c, val);
+#ifdef _DEBUG
+        qDebug() <<"Value "<<val<<c.name<<c.id<<" set code: " << r;
+#endif
+        if (r)
+            tryReconnectOnError();
+        updateControls();
+    }
+}
+
 
 void DeviceProperties::resetToDefaults()
 {

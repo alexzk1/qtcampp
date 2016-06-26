@@ -16,8 +16,6 @@
 class DeviceProperties : public QWidget, protected SaveableWidget
 {
     Q_OBJECT
-private:
-
 protected:
     using widgetted_pt  = std::shared_ptr<ISaveableWidget>;
     using widgetted_ptw = std::weak_ptr<ISaveableWidget>;
@@ -27,6 +25,8 @@ protected:
     wlist_t holder; //holds all objects until this is destroyed
     v4l2device_ptr currDevice;
     controls_t controls;
+private:
+    void controlValueChanged(const widgetted_pt& p, const v4l2_query_ext_ctrl& c);
 public:
     explicit DeviceProperties(const v4l2device::device_info device, QWidget *parent = 0);
     v4l2device_ptr getCurrDevice() const;
