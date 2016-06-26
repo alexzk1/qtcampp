@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>715</width>
-    <height>541</height>
+    <height>551</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -42,8 +42,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>118</width>
-          <height>441</height>
+          <width>69</width>
+          <height>451</height>
          </rect>
         </property>
        </widget>
@@ -71,9 +71,11 @@
    </property>
    <widget class="QMenu" name="menuCamera">
     <property name="title">
-     <string>Camera</string>
+     <string>Came&amp;ra</string>
     </property>
     <addaction name="actionSelect_Camera"/>
+    <addaction name="actionApply_All"/>
+    <addaction name="actionReset"/>
    </widget>
    <addaction name="menuCamera"/>
   </widget>
@@ -88,6 +90,8 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionSelect_Camera"/>
+   <addaction name="actionApply_All"/>
+   <addaction name="actionReset"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionSelect_Camera">
@@ -96,7 +100,7 @@
      <normaloff>:/icons/icons/Photo-Video-Camera-Identification-icon.png</normaloff>:/icons/icons/Photo-Video-Camera-Identification-icon.png</iconset>
    </property>
    <property name="text">
-    <string>Select</string>
+    <string>&amp;Select</string>
    </property>
    <property name="iconText">
     <string>Select Camera</string>
@@ -105,7 +109,43 @@
     <string>Select camera to be used</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Alt+S</string>
+    <string>Ctrl+Shift+S</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
+   </property>
+  </action>
+  <action name="actionApply_All">
+   <property name="icon">
+    <iconset resource="../resources.qrc">
+     <normaloff>:/icons/icons/Actions-dialog-ok-icon.png</normaloff>:/icons/icons/Actions-dialog-ok-icon.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Apply All</string>
+   </property>
+   <property name="toolTip">
+    <string>(Re-)Apply all settings at once. Use in case hardware was reconfigured outside the program or lost device connection.</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+A</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
+   </property>
+  </action>
+  <action name="actionReset">
+   <property name="icon">
+    <iconset resource="../resources.qrc">
+     <normaloff>:/icons/icons/Reset-icon.png</normaloff>:/icons/icons/Reset-icon.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Defaults</string>
+   </property>
+   <property name="toolTip">
+    <string>Reset all settings to hardware defaults.</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+D</string>
    </property>
    <property name="shortcutContext">
     <enum>Qt::ApplicationShortcut</enum>

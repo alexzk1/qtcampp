@@ -1,3 +1,5 @@
+//License: MIT, (c) Oleksiy Zakharov, 2016, alexzkhr@gmail.com
+
 #ifndef SELECTDEVICEDIALOG_H
 #define SELECTDEVICEDIALOG_H
 #include "devicing/v4l2device.h"

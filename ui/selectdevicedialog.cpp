@@ -1,7 +1,7 @@
 #include "selectdevicedialog.h"
 #include "ui_selectdevicedialog.h"
 #include "globalsettings.h"
-
+//License: MIT, (c) Oleksiy Zakharov, 2016, alexzkhr@gmail.com
 
 SelectDeviceDialog::SelectDeviceDialog(QWidget *parent) :
     QDialog(parent),

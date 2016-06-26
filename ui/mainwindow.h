@@ -4,6 +4,8 @@
 
 #include <QMainWindow>
 #include <QPointer>
+#include <QLabel>
+
 #include "saveable_widget.h"
 #include "deviceproperties.h"
 
@@ -28,8 +30,21 @@ protected:
 private slots:
     void on_actionSelect_Camera_triggered(bool prefferStored = false);
 
+    void on_actionApply_All_triggered();
+
+    void on_actionReset_triggered();
+
+    void device_lost();
+    void device_back();
 private:
     Ui::MainWindow *ui;
+    void createStatusBar();
+
+    QPointer<QLabel> fpsLabel;
+    QPointer<QLabel> connStatusLabel;
+
+    void setStatus(bool on);
+    void showFps(int fps);
 };
 
 #endif // MAINWINDOW_H

@@ -19,7 +19,7 @@ So main idea behind is - "less clicks!".
 
 Program is based on GPL sources which I used as examples (because it is 1st time I use V4L), however, sources were 7 years old till today and had great errors (which I bet lead all that 4 programs to crashes I saw in fact). So I rewrote pieces I needed exactly for this task from scratch.
 
-__All together is MIT licensed.__
+__All together (contained in this repository) is MIT licensed, no matter if file itself mentiones it. Icons/arts may have separated licenses mentioned in "licenses.txt".__
 
 _Requires modern (as for 2016) C++ to be compiled._
 

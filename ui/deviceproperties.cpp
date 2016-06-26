@@ -10,38 +10,23 @@
 DeviceProperties::DeviceProperties(const v4l2device::device_info device, QWidget *parent):
     QWidget(parent)
 {
-//    QSizePolicy pol = sizePolicy();
-//    pol.setHorizontalStretch(1);
-//    setSizePolicy(pol);
+    auto setPol = [](QWidget *w)
+    {
+        QSizePolicy pol = w->sizePolicy();
+        pol.setHorizontalPolicy(QSizePolicy::MinimumExpanding);
+        w->setSizePolicy(pol);
+    };
 
     currDevice = device.open();
     if (currDevice)
     {
         auto layout = new QVBoxLayout();
         layout->setAlignment(Qt::AlignTop);
-
-        auto rb = new QPushButton();
-        rb->setText(tr("Hardware Defaults"));
-        rb->setToolTip(tr("Press to reset to default hardware-configured values."));
-
-        layout->addWidget(rb);
-
-        connect(rb, &QPushButton::clicked, this, [this](bool c)
-        {
-            Q_UNUSED(c);
-            resetToDefaults();
-        }, Qt::QueuedConnection); //so can be used in multithread
-
-        rb = new QPushButton();
-        rb->setText(tr("Force Apply"));
-        rb->setToolTip(tr("Press to apply all current settings to hardware in case it was modified outside the program or lost device connection."));
-        layout->addWidget(rb);
-
-        connect(rb, &QPushButton::clicked, this, [this](bool c)
-        {
-            Q_UNUSED(c);
-            reapplyAll();
-        }, Qt::QueuedConnection);
+        auto lbl = new QLabel();
+        lbl->setText(device.devname.c_str());
+        lbl->setAlignment(Qt::AlignHCenter);
+        layout->addWidget(lbl);
+        setPol(lbl);
 
         controls = currDevice->listControls();
         for (const auto& c : controls)
@@ -128,6 +113,7 @@ DeviceProperties::DeviceProperties(const v4l2device::device_info device, QWidget
                 ptr->reload();
 
                 auto w = ptr->createWidget();
+                setPol(w);
                 w->setEnabled(isEnabled(c));
                 layout->addWidget(w);
             }
