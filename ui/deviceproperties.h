@@ -27,6 +27,10 @@ protected:
     controls_t controls;
 private:
     void controlValueChanged(const widgetted_pt& p, const v4l2_query_ext_ctrl& c);
+
+    static bool isEnabled(const v4l2_query_ext_ctrl& c);
+    static bool isEnabled(__u32 flags);
+    static bool isNeedUpdate(const v4l2_query_ext_ctrl& c);
 public:
     explicit DeviceProperties(const v4l2device::device_info device, QWidget *parent = 0);
     v4l2device_ptr getCurrDevice() const;
@@ -35,10 +39,10 @@ signals:
     void deviceDisconnected();
     void deviceRestored();
 public slots:
-    void resetToDefaults();
-    void reapplyAll();
+    void resetToDefaults(); //resets to HW defaults
+    void reapplyAll(); //forces settings upload into device (all of them)
     void tryReconnectOnError(); //videostream reader must call that in case of error to test if device can be reconnected
-    void updateControls();
+    void updateControls(); //updates controls (active / not) according to current device readings
 };
 
 #endif // DEVICEPROPERTIES_H

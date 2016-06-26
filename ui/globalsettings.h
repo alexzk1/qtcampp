@@ -96,7 +96,7 @@ namespace nmsp_gs
 //templated savable object, you just set value and it kept in settings, automatically casts to template-type like bool
 //this is supposed to be in-memory setting value which will be saved by the destructor
 template <typename T, bool use_atomic = false>
-class GlobSaveableTeml : public nmsp_gs::SaveableToStorage
+class GlobSaveableTempl : public nmsp_gs::SaveableToStorage
 {
 private:
     using VarType = typename std::conditional<use_atomic, std::atomic<T>, T>::type;
@@ -108,19 +108,19 @@ protected:
     }
 
 public:
-    explicit GlobSaveableTeml(const QString& key, const QString& group = nmsp_gs::GlobalStorage::defaultGroup):
+    explicit GlobSaveableTempl(const QString& key, const QString& group = nmsp_gs::GlobalStorage::defaultGroup):
         nmsp_gs::SaveableToStorage(key, QVariant(), group)
     {
         reload();
     }
 
-    explicit GlobSaveableTeml(const QString& key, const T& def, const QString& group = nmsp_gs::GlobalStorage::defaultGroup):
+    explicit GlobSaveableTempl(const QString& key, const T& def, const QString& group = nmsp_gs::GlobalStorage::defaultGroup):
         nmsp_gs::SaveableToStorage(key, qVariantFromValue(def), group)
     {
         reload();
     }
 
-    virtual ~GlobSaveableTeml()
+    virtual ~GlobSaveableTempl()
     {
         flush();
     }
@@ -145,7 +145,7 @@ public:
         return getCachedValue();
     }
 
-    GlobSaveableTeml<T, use_atomic>& operator = (const T& v)
+    GlobSaveableTempl<T, use_atomic>& operator = (const T& v)
     {
         setCachedValue(v);
         return *this;
@@ -195,7 +195,7 @@ class SaveableWidgetTempl: public ISaveableWidget
 {
 protected:
     const bool IsAtomic = use_atomic;
-    GlobSaveableTeml<T, use_atomic> state;
+    GlobSaveableTempl<T, use_atomic> state;
 public:
     using      ValueType = T;
 

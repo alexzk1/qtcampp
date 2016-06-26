@@ -19,6 +19,7 @@ DeviceProperties::DeviceProperties(const v4l2device::device_info device, QWidget
         auto rb = new QPushButton();
         rb->setText(tr("Hardware Defaults"));
         rb->setToolTip(tr("Press to reset to default hardware-configured values."));
+
         layout->addWidget(rb);
 
         connect(rb, &QPushButton::clicked, this, [this](bool c)
@@ -123,7 +124,7 @@ DeviceProperties::DeviceProperties(const v4l2device::device_info device, QWidget
                 ptr->reload();
 
                 auto w = ptr->createWidget();
-                w->setEnabled(!(c.flags & V4L2_CTRL_FLAG_INACTIVE));
+                w->setEnabled(isEnabled(c));
                 layout->addWidget(w);
             }
         }
@@ -160,8 +161,26 @@ void DeviceProperties::controlValueChanged(const DeviceProperties::widgetted_pt 
 #endif
         if (r)
             tryReconnectOnError();
+
+        //if (isNeedUpdate(c)) // on my sample camera this flag is not set, so must do full update of controls
         updateControls();
     }
+}
+
+bool DeviceProperties::isEnabled(const v4l2_query_ext_ctrl &c)
+{
+    return isEnabled(c.flags);
+}
+
+bool DeviceProperties::isEnabled(__u32 flags)
+{
+    return !(flags & V4L2_CTRL_FLAG_INACTIVE) && !(flags & V4L2_CTRL_FLAG_READ_ONLY);
+}
+
+bool DeviceProperties::isNeedUpdate(const v4l2_query_ext_ctrl &c)
+{
+    //qDebug() << c.flags;
+    return c.flags & V4L2_CTRL_FLAG_UPDATE;
 }
 
 
@@ -222,7 +241,7 @@ void DeviceProperties::updateControls()
             {
                 auto flags = currDevice->queryControlFlags(v.first);
                 if (v.second->lastWidget)
-                    v.second->lastWidget->setEnabled(!(flags & V4L2_CTRL_FLAG_INACTIVE));
+                    v.second->lastWidget->setEnabled(isEnabled(flags));
             }
             else
                 v.second->lastWidget->setEnabled(false);

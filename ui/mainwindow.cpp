@@ -3,20 +3,17 @@
 #include "ui_mainwindow.h"
 #include "deviceproperties.h"
 #include <QVBoxLayout>
+#include "selectdevicedialog.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-
-        auto list = v4l2device::list_attached_devices();
-        if (list.size())
-        {
-            centralWidget()->setLayout(new QVBoxLayout());
-            centralWidget()->layout()->addWidget(new DeviceProperties(list.at(0)));
-        }
     readSettings(this);
+    auto dev = SelectDeviceDialog::pickDevice(this, true);
+    centralWidget()->setLayout(new QVBoxLayout());
+    centralWidget()->layout()->addWidget(new DeviceProperties(dev));
 }
 
 MainWindow::~MainWindow()
