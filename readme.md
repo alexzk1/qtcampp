@@ -10,6 +10,11 @@ settings automatically;
 * if camera is reconnected to the same usb slot it is able to pick it and re-apply settings and continue;
 * last used camera will be opened on start if present.
 
+### Limitations:
+
+* devices are recognized by human readable names, 2 with same name will be considered the sames, so case when 2 same named connected is not checked (most likelly will work first found);
+* implemented only subset of V4L API to access devices, minimum needed to get picture and configure __my__ webcamera. Sound etc. is not implemented intentionally and is not checked. Maybe will work.
+
 So main idea behind is - "less clicks!".
 
 Program is based on GPL sources which I used as examples (because it is 1st time I use V4L), however, sources were 7 years old till today and had great errors (which I bet lead all that 4 programs to crashes I saw in fact). So I rewrote pieces I needed exactly for this task from scratch.

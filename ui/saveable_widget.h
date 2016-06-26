@@ -6,6 +6,8 @@
 #include <QWidget>
 #include <QSettings>
 
+
+//took idea (or maybe even code) somewhere on stackoverflow, don't remember
 class SaveableWidget
 {
 private:

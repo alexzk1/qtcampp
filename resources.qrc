@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file>icons/blue-camera-icon.png</file>
+        <file>icons/Photo-Video-Camera-Identification-icon.png</file>
+    </qresource>
+</RCC>

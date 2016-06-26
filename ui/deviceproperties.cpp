@@ -10,6 +10,10 @@
 DeviceProperties::DeviceProperties(const v4l2device::device_info device, QWidget *parent):
     QWidget(parent)
 {
+//    QSizePolicy pol = sizePolicy();
+//    pol.setHorizontalStretch(1);
+//    setSizePolicy(pol);
+
     currDevice = device.open();
     if (currDevice)
     {

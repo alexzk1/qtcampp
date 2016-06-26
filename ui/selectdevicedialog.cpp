@@ -18,7 +18,7 @@ v4l2device::device_info SelectDeviceDialog::pickDevice(QWidget* owner, bool pref
 
     if (prefferStored)
     {
-        std::string dev = stored.getCachedValue().toStdString();
+        const std::string dev = stored.getCachedValue().toStdString();
         for (const auto& d : devices)
         {
             if (dev == d.devname)
@@ -78,4 +78,10 @@ void SelectDeviceDialog::updateList(const v4l2device::devices_list_t &devs)
     {
         ui->listDevices->addItem(devices.at(i).devname.c_str());
     }
+}
+
+void SelectDeviceDialog::on_listDevices_doubleClicked(const QModelIndex &index)
+{
+    if (index.isValid())
+        accept();
 }
