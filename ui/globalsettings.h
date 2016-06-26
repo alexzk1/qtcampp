@@ -258,7 +258,7 @@ private:
 
 public:
     QList<QWidget*> createWidgets() const;
-    static StaticSettingsMap& getGlobalSetts();
+    static const StaticSettingsMap& getGlobalSetts();
 
     template<class T, bool isatomic = true>
     void readValue(const QString& name, T& value) const

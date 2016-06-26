@@ -7,16 +7,14 @@
 //declare all global settings below, so it can be automatically added to setting's
 //-----------------------------------------------------------------------------------------------------------------------
 
-StaticSettingsMap &StaticSettingsMap::getGlobalSetts()
+const StaticSettingsMap &StaticSettingsMap::getGlobalSetts()
 {
-    QString defRel;
-
-    if (defRel.isEmpty())
-      defRel = QDir::homePath();
-
     //do not change keys once used, because 1: key-string is  directly used in other code (must be same), 2: users will lose stored value on next run
     //visual order depends on string sort of the keys
-    static StaticSettingsMap list({
+    const static StaticSettingsMap list({
+                                      DECL_SETT(GlobalFileStorable, "WorkingFolder", QDir::homePath(), tr("Working Folder"),
+                                      tr("Set a folder where captured images and videos will be stored."),
+                                      tr("Select working folder")),
 
                                    });
     return list;

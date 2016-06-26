@@ -6,6 +6,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "selectdevicedialog.h"
+#include "settingsdialog.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -116,4 +117,10 @@ void MainWindow::showFps(int fps)
 {
     if (fpsLabel)
         fpsLabel->setText(tr("FPS: %1").arg(fps));
+}
+
+void MainWindow::on_actionSettings_triggered()
+{
+    SettingsDialog d(this);
+    d.exec();
 }

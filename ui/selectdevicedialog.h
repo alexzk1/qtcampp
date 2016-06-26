@@ -10,7 +10,7 @@ namespace Ui {
     class SelectDeviceDialog;
 }
 
-class SelectDeviceDialog : public QDialog, protected SaveableWidget
+class SelectDeviceDialog : public QDialog, protected virtual SaveableWidget
 {
     Q_OBJECT
 

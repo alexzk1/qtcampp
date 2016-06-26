@@ -36,6 +36,8 @@ private slots:
 
     void device_lost();
     void device_back();
+    void on_actionSettings_triggered();
+
 private:
     Ui::MainWindow *ui;
     void createStatusBar();

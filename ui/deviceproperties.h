@@ -13,7 +13,7 @@
 #include "globalsettings.h"
 
 //this class builds GUI to represent device properties.
-class DeviceProperties : public QWidget, protected SaveableWidget
+class DeviceProperties : public QWidget, protected virtual SaveableWidget
 {
     Q_OBJECT
 protected:

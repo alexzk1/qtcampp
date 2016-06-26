@@ -77,7 +77,14 @@
     <addaction name="actionApply_All"/>
     <addaction name="actionReset"/>
    </widget>
+   <widget class="QMenu" name="menuSettings">
+    <property name="title">
+     <string>Setti&amp;ngs</string>
+    </property>
+    <addaction name="actionSettings"/>
+   </widget>
    <addaction name="menuCamera"/>
+   <addaction name="menuSettings"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <property name="toolButtonStyle">
@@ -90,8 +97,11 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionSelect_Camera"/>
+   <addaction name="separator"/>
    <addaction name="actionApply_All"/>
    <addaction name="actionReset"/>
+   <addaction name="separator"/>
+   <addaction name="actionSettings"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionSelect_Camera">
@@ -149,6 +159,24 @@
    </property>
    <property name="shortcutContext">
     <enum>Qt::ApplicationShortcut</enum>
+   </property>
+  </action>
+  <action name="actionSettings">
+   <property name="icon">
+    <iconset resource="../resources.qrc">
+     <normaloff>:/icons/icons/Settings-2-icon.png</normaloff>:/icons/icons/Settings-2-icon.png</iconset>
+   </property>
+   <property name="text">
+    <string>Show</string>
+   </property>
+   <property name="iconText">
+    <string>Settings</string>
+   </property>
+   <property name="toolTip">
+    <string>Show program's settings.</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+S</string>
    </property>
   </action>
  </widget>
