@@ -103,7 +103,7 @@ void MainWindow::on_actionReset_triggered()
 void MainWindow::device_lost()
 {
     const static QPixmap empty;
-    stopVideoCap(); //that will make automatic resume not posseble even if device will be properly picked
+    stopVideoCap(); //that will make automatic resume (by polling thread in v4l2device) not possible even if device will be properly picked
     setStatus(false);
     hasFrame(empty, 0);
 }

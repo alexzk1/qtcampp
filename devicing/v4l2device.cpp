@@ -19,7 +19,7 @@
 
 #include <libv4lconvert.h>
 
-const static int lostDevicePauseMs    = 750; //sleep of the thread when device is lost/does errors
+const static int lostDevicePauseMs    = 150; //sleep of the thread when device is lost/does errors
 const static uint64_t deviceTestEachNLoops = 1000; //not too often check if we didnt miss device yet
 
 #ifdef QTCAMPP_PROJ
