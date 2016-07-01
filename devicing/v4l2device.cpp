@@ -133,6 +133,9 @@ v4l2device::device_control_menu v4l2device::listMenuForControl(const v4l2_query_
 bool v4l2device::open(const std::string &device, bool tryWraper)
 {
     close();
+    if (device.empty())
+        return false;
+
     usingWrapper = false;
     auto fd = ::open(device.c_str(), O_RDWR | O_NONBLOCK);
     if (fd < 0)

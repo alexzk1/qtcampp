@@ -5,9 +5,10 @@
 #include <QMainWindow>
 #include <QPointer>
 #include <QLabel>
-#include <QImage>
+#include <QPixmap>
 #include <memory>
-#include <QSharedPointer>
+#include <QTimer>
+
 #include "saveable_widget.h"
 #include "deviceproperties.h"
 #include "ppm_p6_buffer.h"
@@ -49,8 +50,12 @@ private:
     QPointer<QLabel> fpsLabel;
     QPointer<QLabel> connStatusLabel;
     ppm_p6_buffer frame;
+    QPointer<QTimer> checkTimer;
 
     void relistIfLost();
+    void forceRelist();
+    void pereodicTestRunStop();
+
     void setStatus(bool on);
     void showFps(int fps);
 

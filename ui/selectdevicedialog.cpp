@@ -27,17 +27,18 @@ v4l2device::device_info SelectDeviceDialog::pickDevice(QWidget* owner, bool pref
     }
 
     v4l2device::device_info res;
-
-    SelectDeviceDialog dialog(owner);
-    dialog.updateList(devices);
-    if (QDialog::Accepted == dialog.exec())
+    if (devices.size() || !prefferStored) //if prefferedStored but no devices connected - do not popup
     {
-        res = dialog.getSelected();
+        SelectDeviceDialog dialog(owner);
+        dialog.updateList(devices);
+        if (QDialog::Accepted == dialog.exec())
+        {
+            res = dialog.getSelected();
 
-        if (!res.devname.empty()) //if empty selected - do not cache it
-            stored.setCachedValue(res.devname.c_str());
+            if (!res.devname.empty()) //if empty selected - do not cache it
+                stored.setCachedValue(res.devname.c_str());
+        }
     }
-
     return res;
 }
 

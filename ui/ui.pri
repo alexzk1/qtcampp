@@ -7,7 +7,8 @@ HEADERS += \
     $$PWD/saveable_widget.h \
     $$PWD/selectdevicedialog.h \
     $$PWD/settingsdialog.h \
-    $$PWD/ppm_p6_buffer.h
+    $$PWD/ppm_p6_buffer.h \
+    $$PWD/utils.h
 
 SOURCES += \
     $$PWD/globalsettings.cpp \

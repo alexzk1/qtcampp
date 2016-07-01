@@ -11,22 +11,32 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     lastPropPane(nullptr),
-    ui(new Ui::MainWindow)
+    ui(new Ui::MainWindow),
+    checkTimer(new QTimer(this))
 {
     ui->setupUi(this);
     readSettings(this);
     setWindowTitle(qApp->applicationName());
     createStatusBar();
 
-
+    ui->videoOut->setAlignment(Qt::AlignCenter);
     connect(this, &MainWindow::hasFrame, this, [this](const QPixmap& pix, int64_t ms)
     {
-        showFps(1000 / ms);
+        if (ms < 1)
+            showFps(0);
+        else
+            showFps(1000 / ms);
         ui->videoOut->setPixmap(pix);
 
     },Qt::QueuedConnection); //a must, to resolve cross-thread - it does synchro
 
+    connect(checkTimer, &QTimer::timeout, this, [this]()
+    {
+        relistIfLost();
+    }, Qt::QueuedConnection);
+
     relistIfLost();
+    pereodicTestRunStop();
 }
 
 MainWindow::~MainWindow()
@@ -92,15 +102,15 @@ void MainWindow::on_actionReset_triggered()
 
 void MainWindow::device_lost()
 {
+    const static QPixmap empty;
     stopVideoCap(); //that will make automatic resume not posseble even if device will be properly picked
     setStatus(false);
-    showFps(0);
+    hasFrame(empty, 0);
 }
 
 void MainWindow::device_back()
 {
     setStatus(true);
-    showFps(0);
     launchVideoCap();
 }
 
@@ -133,6 +143,24 @@ void MainWindow::relistIfLost()
 
     if (needRelist)
         on_actionSelect_Camera_triggered(true);
+}
+
+void MainWindow::forceRelist()
+{
+    if (lastPropPane)
+        delete lastPropPane;
+    relistIfLost();
+}
+
+void MainWindow::pereodicTestRunStop()
+{
+    if (checkTimer)
+    {
+        if (StaticSettingsMap::getGlobalSetts().readBool("PereodicDeviceTestPresence"))
+            checkTimer->start(1000 * StaticSettingsMap::getGlobalSetts().readInt("PereodicDeviceTestSecs"));
+        else
+            checkTimer->stop();
+    }
 }
 
 void MainWindow::setStatus(bool on)
@@ -187,7 +215,6 @@ void MainWindow::on_actionSettings_triggered()
     d.exec();
 
     //reapplying settings
-    if (lastPropPane)
-        delete lastPropPane;
-    relistIfLost();
+    forceRelist();
+    pereodicTestRunStop();
 }
