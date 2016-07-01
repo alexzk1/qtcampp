@@ -253,6 +253,27 @@ __u32 v4l2device::queryControlFlags(__u32 id)
     return 0xFFFFFFFF; // all flags set - fail
 }
 
+v4l2device::device_formats_t v4l2device::listFormats(__u32 type)
+{
+    device_formats_t res;
+    res.reserve(10); //hope 10 formats will be enough in most cases
+    v4l2_fmtdesc fmt;
+    memset(&fmt, 0, sizeof(v4l2_fmtdesc));
+    fmt.type = type;
+
+    for (__u32 index = 0;; ++index)
+    {
+        fmt.index = index;
+        auto code = ioctl(VIDIOC_ENUM_FMT, &fmt);
+
+        if (code < 0)
+            break;
+        res.push_back(fmt);
+    }
+
+    return res;
+}
+
 bool v4l2device::cameraInput(const frame_receiver& receiver, __u32 pixelFormat)
 {
     using TimeT = std::chrono::milliseconds;
@@ -303,6 +324,7 @@ bool v4l2device::cameraInput(const frame_receiver& receiver, __u32 pixelFormat)
                             cam_buf.memory = buffers.at(0)->buf.memory;
 
                             get_fmt_cap(cam_buf.type, srcFormat);
+
                             destFormat = srcFormat;
                             destFormat.fmt.pix.pixelformat = pixelFormat;
                             v4lconvert_try_format(converter.get(), &destFormat, nullptr);
@@ -504,6 +526,11 @@ bool v4l2device::get_fmt_cap(__u32 type, v4l2_format &fmt) const
     memset(&fmt, 0, sizeof(fmt));
     fmt.type = type;
     return ioctl(VIDIOC_G_FMT, &fmt) > -1;
+}
+
+int v4l2device::set_fmt_cap(v4l2_format &fmt) const
+{
+    return ioctl(VIDIOC_S_FMT, &fmt);
 }
 
 

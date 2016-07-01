@@ -6,16 +6,17 @@
 #include <QDebug>
 #include <QTimer>
 
+const static auto setPol = [](QWidget *w)
+{
+    QSizePolicy pol = w->sizePolicy();
+    pol.setHorizontalPolicy(QSizePolicy::MinimumExpanding);
+    w->setSizePolicy(pol);
+};
 
 DeviceProperties::DeviceProperties(const v4l2device::device_info device, QWidget *parent):
-    QWidget(parent)
+    QWidget(parent),
+    settings_group(device.devname.c_str())
 {
-    auto setPol = [](QWidget *w)
-    {
-        QSizePolicy pol = w->sizePolicy();
-        pol.setHorizontalPolicy(QSizePolicy::MinimumExpanding);
-        w->setSizePolicy(pol);
-    };
 
     currDevice = device.open();
     if (currDevice)
@@ -27,100 +28,24 @@ DeviceProperties::DeviceProperties(const v4l2device::device_info device, QWidget
         lbl->setAlignment(Qt::AlignHCenter);
         layout->addWidget(lbl);
         setPol(lbl);
-
-        controls = currDevice->listControls();
-        for (const auto& c : controls)
-        {
-            //that is only 1 place where I do read real values from device - defaults, anything else inside device is ignored
-            //and replaced by values stored into settings on computer
-            widgetted_pt ptr;
-#ifdef _DEBUG
-            qDebug() <<c.id<<c.name<<c.type<<", default:"<<c.default_value<<"min,max:"<<c.minimum<<c.maximum<<c.step;
-#endif
-            switch(c.type)
-            {
-                case V4L2_CTRL_TYPE_BOOLEAN:
-                    ptr.reset(new GlobalStorableBool(QString(c.name), static_cast<bool>(c.default_value), QString(c.name), ""));
-                    break;
-                case V4L2_CTRL_TYPE_INTEGER:
-                case V4L2_CTRL_TYPE_INTEGER64:
-                {
-                    //QSpinBox has limits to be int, also it will be remaped by step...so repeating here as nice hint
-                    int s = static_cast<int>(c.step);
-                    auto hint = tr(" (%1 / %2, def: %3)")
-                                .arg(static_cast<int>(c.minimum) / s)
-                                .arg(static_cast<int>(c.maximum) / s)
-                                .arg(static_cast<int>(c.default_value) / s);
-                    ptr.reset(new GlobalStorableInt(QString(c.name),
-                                                    static_cast<GlobalStorableInt::ValueType>(c.default_value),
-                                                    QString(c.name) + hint, "",
-                                                    static_cast<GlobalStorableInt::ValueType>(c.minimum),
-                                                    static_cast<GlobalStorableInt::ValueType>(c.maximum),
-                                                    static_cast<GlobalStorableInt::ValueType>(c.step)));
-                };
-                    break;
-                case V4L2_CTRL_TYPE_MENU:
-                case V4L2_CTRL_TYPE_INTEGER_MENU:
-                {
-                    //menus are meajured in own indexes, i.e. some maybe skipped like 1,4,8 are valids only, but we will have it stored as 0-1-2
-                    //so need to remap it...
-                    auto menu = currDevice->listMenuForControl(c);
-                    int def = 0;
-                    for (const auto &m : menu)
-                    {
-                       if (c.default_value == m.menu.index)
-                       {
-                           break;
-                       }
-                       ++def;
-                    }
-                    ptr.reset(new GlobalComboBoxStorable(QString(c.name), def, QString(c.name), "",
-                                                         [menu](QStringList& s, QVariantList& v){
-                                                             for (auto& itm : menu)
-                                                             {
-                                                                 if (itm.isInteger)
-                                                                   s << QString::number(itm.menu.value, 16);
-                                                                 else
-                                                                   s << QString(reinterpret_cast<const char*>(itm.menu.name));
-                                                                 v << itm.menu.index; //...and hold remap as user data for laters
-                                                             }
-                                                         }
-                                                    ));
-                };
-                    break;
-                    //todo: add more control types, like bit-fields
-                default:
-                    ptr.reset();
-                    break;
-            }
-
-            if (ptr)
-            {
-                holder[c.id] = ptr;
-                widgetted_ptw wp = ptr;
-
-                //that is what I need actually - I do not read actual current camera settings, I force to set my own stored in settings
-                connect(ptr.get(), &ISaveableWidget::valueChanged, this, [this, c, wp]()
-                {
-                    auto p = wp.lock();
-                    //still lambda is connected to the event, because it allows to have copy of things easy without dancing with class memebers
-                    //(like c value here)
-                    controlValueChanged(p, c);
-
-                }, Qt::QueuedConnection);
-
-                ptr->setNewGroup(QString(device.devname.c_str()));
-                ptr->reload();
-
-                auto w = ptr->createWidget();
-                setPol(w);
-                w->setEnabled(isEnabled(c));
-                layout->addWidget(w);
-            }
-        }
-
         setLayout(layout);
+        listControls();
+        listFormats();
     }
+}
+
+QWidget* DeviceProperties::connectGUI(const v4l2_query_ext_ctrl& c, const DeviceProperties::widgetted_pt &ptr)
+{
+    QWidget* w = nullptr;
+    if (ptr)
+    {
+        ptr->setNewGroup(settings_group);
+        ptr->reload();
+        w = ptr->createWidget();
+        setPol(w);
+        layout()->addWidget(w);
+    }
+    return w;
 }
 
 v4l2device_ptr DeviceProperties::getCurrDevice() const
@@ -154,6 +79,102 @@ void DeviceProperties::controlValueChanged(const DeviceProperties::widgetted_pt 
 
         //if (isNeedUpdate(c)) // on my sample camera this flag is not set, so must do full update of controls
         updateControls();
+    }
+}
+
+void DeviceProperties::listControls()
+{
+    controls = currDevice->listControls();
+    for (const auto& c : controls)
+    {
+        //that is only 1 place where I do read real values from device - defaults, anything else inside device is ignored
+        //and replaced by values stored into settings on computer
+        widgetted_pt ptr;
+#ifdef _DEBUG
+        qDebug() <<c.id<<c.name<<c.type<<", default:"<<c.default_value<<"min,max:"<<c.minimum<<c.maximum<<c.step;
+#endif
+        switch(c.type)
+        {
+            case V4L2_CTRL_TYPE_BOOLEAN:
+                ptr.reset(new GlobalStorableBool(QString(c.name), static_cast<bool>(c.default_value), QString(c.name), ""));
+                break;
+            case V4L2_CTRL_TYPE_INTEGER:
+            case V4L2_CTRL_TYPE_INTEGER64:
+            {
+                //QSpinBox has limits to be int, also it will be remaped by step...so repeating here as nice hint
+                int s = static_cast<int>(c.step);
+                auto hint = tr(" (%1 / %2, def: %3)")
+                            .arg(static_cast<int>(c.minimum) / s)
+                            .arg(static_cast<int>(c.maximum) / s)
+                            .arg(static_cast<int>(c.default_value) / s);
+                ptr.reset(new GlobalStorableInt(QString(c.name),
+                                                static_cast<GlobalStorableInt::ValueType>(c.default_value),
+                                                QString(c.name) + hint, "",
+                                                static_cast<GlobalStorableInt::ValueType>(c.minimum),
+                                                static_cast<GlobalStorableInt::ValueType>(c.maximum),
+                                                static_cast<GlobalStorableInt::ValueType>(c.step)));
+            };
+                break;
+            case V4L2_CTRL_TYPE_MENU:
+            case V4L2_CTRL_TYPE_INTEGER_MENU:
+            {
+                //menus are meajured in own indexes, i.e. some maybe skipped like 1,4,8 are valids only, but we will have it stored as 0-1-2
+                //so need to remap it...
+                auto menu = currDevice->listMenuForControl(c);
+                int def = 0;
+                for (const auto &m : menu)
+                {
+                   if (c.default_value == m.menu.index)
+                   {
+                       break;
+                   }
+                   ++def;
+                }
+                ptr.reset(new GlobalComboBoxStorable(QString(c.name), def, QString(c.name), "",
+                                                     [menu](QStringList& s, QVariantList& v){
+                                                         for (auto& itm : menu)
+                                                         {
+                                                             if (itm.isInteger)
+                                                               s << QString::number(itm.menu.value, 16);
+                                                             else
+                                                               s << QString(reinterpret_cast<const char*>(itm.menu.name));
+                                                             v << itm.menu.index; //...and hold remap as user data for laters
+                                                         }
+                                                     }
+                                                ));
+            };
+                break;
+                //todo: add more control types, like bit-fields
+            default:
+                ptr.reset();
+                break;
+        }
+        if (ptr)
+        {
+            holder[c.id] = ptr;
+            widgetted_ptw wp = ptr;
+            //that is what I need actually - I do not read actual current camera settings, I force to set my own stored in settings
+            connect(ptr.get(), &ISaveableWidget::valueChanged, this, [this, c, wp]()
+            {
+                auto p = wp.lock();
+                //still lambda is connected to the event, because it allows to have copy of things easy without dancing with class memebers
+                //(like c value here)
+                controlValueChanged(p, c);
+
+            }, Qt::QueuedConnection);
+            auto w = connectGUI(c, ptr);
+            if (w)
+                w->setEnabled(isEnabled(c));
+        }
+    }
+}
+
+void DeviceProperties::listFormats()
+{
+    auto fmts = currDevice->listFormats();
+    for (const auto& f: fmts)
+    {
+        qDebug() <<"FORMAT: "<< reinterpret_cast<const char*>(f.description);
     }
 }
 

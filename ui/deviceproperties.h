@@ -4,6 +4,7 @@
 
 #include <QObject>
 #include <QWidget>
+#include <QString>
 #include <vector>
 #include <map>
 
@@ -26,13 +27,20 @@ protected:
     v4l2device_ptr currDevice;
     controls_t controls;
 private:
+    const QString settings_group;
     void controlValueChanged(const widgetted_pt& p, const v4l2_query_ext_ctrl& c);
+    void listControls();
+    void listFormats();
+
+    QWidget *connectGUI(const v4l2_query_ext_ctrl &c, const widgetted_pt& ptr);
 
     static bool isEnabled(const v4l2_query_ext_ctrl& c);
     static bool isEnabled(__u32 flags);
     static bool isNeedUpdate(const v4l2_query_ext_ctrl& c);
+
 public:
     explicit DeviceProperties(const v4l2device::device_info device, QWidget *parent = 0);
+
     v4l2device_ptr getCurrDevice() const;
 
 signals:

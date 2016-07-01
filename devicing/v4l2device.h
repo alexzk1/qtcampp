@@ -84,6 +84,7 @@ public:
     using device_control_menu = std::vector<menu_item>;
     using mmapped_buffer_ptr  = std::shared_ptr<mmapped_buffer>;
 
+    using device_formats_t    = std::vector<v4l2_fmtdesc>;
     using interruptor_t       = std::atomic<bool>;
     using interruptor_ptr     = std::shared_ptr<interruptor_t>;
     using input_thread_ptr    = std::shared_ptr<std::thread>;
@@ -118,6 +119,7 @@ protected:
     bool    streamoff(__u32 buftype);
 
     bool    get_fmt_cap(__u32 type, v4l2_format &fmt) const;
+    int     set_fmt_cap(v4l2_format &fmt) const;
 
 public:
     v4l2device();
@@ -132,6 +134,7 @@ public:
     int setControlValue(const v4l2_query_ext_ctrl& control,__s64 value) const; //todo: overload for string
     __u32 queryControlFlags(__u32 id);
 
+    device_formats_t listFormats(__u32 type = V4L2_BUF_TYPE_VIDEO_CAPTURE);
 
     //device's state (opened, closed)
     bool open(const std::string& device, bool tryWraper = false);
