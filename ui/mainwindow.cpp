@@ -19,9 +19,11 @@ MainWindow::MainWindow(QWidget *parent) :
     createStatusBar();
 
 
-    connect(this, &MainWindow::hasFrame, this, [this](const QPixmap& pix)
+    connect(this, &MainWindow::hasFrame, this, [this](const QPixmap& pix, int64_t ms)
     {
-       ui->videoOut->setPixmap(pix);
+        showFps(1000 / ms);
+        ui->videoOut->setPixmap(pix);
+
     },Qt::QueuedConnection); //a must, to resolve cross-thread - it does synchro
 
     relistIfLost();
@@ -157,7 +159,8 @@ void MainWindow::launchVideoCap()
         auto dev = lastPropPane->getCurrDevice();
         if (dev && !dev->isCameraRunning())
         {
-            dev->cameraInput(std::bind(&MainWindow::camera_input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+            dev->cameraInput(std::bind(&MainWindow::camera_input, this, std::placeholders::_1,
+                                       std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5));
         }
     }
 }
@@ -172,10 +175,10 @@ void MainWindow::stopVideoCap()
     }
 }
 
-void MainWindow::camera_input(__u32 w, __u32 h, const uint8_t *mem, size_t size)
+void MainWindow::camera_input(__u32 w, __u32 h, const uint8_t *mem, size_t size, int64_t ms_per_frame)
 {
     frame.set_data(w, h, mem, size);
-    emit hasFrame(frame.toPixmap());
+    emit hasFrame(frame.toPixmap(), ms_per_frame);
 }
 
 void MainWindow::on_actionSettings_triggered()

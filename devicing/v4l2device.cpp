@@ -252,6 +252,8 @@ __u32 v4l2device::queryControlFlags(__u32 id)
 
 bool v4l2device::cameraInput(const frame_receiver& receiver, __u32 pixelFormat)
 {
+    using TimeT = std::chrono::milliseconds;
+
     bool res = false;
     if (is_valid_yet() && !m_thread)
     {
@@ -277,9 +279,10 @@ bool v4l2device::cameraInput(const frame_receiver& receiver, __u32 pixelFormat)
             cam_buf.type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
             cam_buf.memory = V4L2_MEMORY_MMAP;
             uint64_t loopCounter = 0;
-
+            auto  start = std::chrono::steady_clock::now();
             while (interruptor)
             {
+
                 if (lostDevice)
                 {
                     if (!(lostDevice = create_buffers(buffers) < 1))
@@ -338,8 +341,12 @@ bool v4l2device::cameraInput(const frame_receiver& receiver, __u32 pixelFormat)
                             if (size > -1)
                                 try
                             {
+                                auto duration = std::chrono::duration_cast< TimeT>  (std::chrono::steady_clock::now() - start);
+                                start = std::chrono::steady_clock::now();
+
                                 //be aware that we output pure pixels there, so listener must add proper headers to load as image
-                                receiver(destFormat.fmt.pix.width, destFormat.fmt.pix.height, destBuffer.data(), static_cast<size_t>(size));
+                                receiver(destFormat.fmt.pix.width, destFormat.fmt.pix.height, destBuffer.data(), static_cast<size_t>(size), duration.count());
+
                             } catch (...)
                             {
                                 std::cerr << "Exception in call to supply data." <<std::endl;

@@ -41,7 +41,7 @@ private slots:
     void device_back();
     void on_actionSettings_triggered();
 signals:
-    void hasFrame(QPixmap pix); //used to resolve cross thread from puller to GUI
+    void hasFrame(QPixmap pix, int64_t ms_per_frame); //used to resolve cross thread from puller to GUI
 private:
     Ui::MainWindow *ui;
     void createStatusBar();
@@ -56,7 +56,7 @@ private:
 
     void launchVideoCap();
     void stopVideoCap();
-    void camera_input(__u32 w, __u32 h, const uint8_t* mem, size_t size);
+    void camera_input(__u32 w, __u32 h, const uint8_t* mem, size_t size,  int64_t ms_per_frame);
 };
 
 #endif // MAINWINDOW_H
