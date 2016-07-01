@@ -5,9 +5,12 @@
 #include <QMainWindow>
 #include <QPointer>
 #include <QLabel>
-
+#include <QImage>
+#include <memory>
+#include <QSharedPointer>
 #include "saveable_widget.h"
 #include "deviceproperties.h"
+#include "ppm_p6_buffer.h"
 
 namespace Ui {
     class MainWindow;
@@ -37,16 +40,23 @@ private slots:
     void device_lost();
     void device_back();
     void on_actionSettings_triggered();
-
+signals:
+    void hasFrame(QPixmap pix); //used to resolve cross thread from puller to GUI
 private:
     Ui::MainWindow *ui;
     void createStatusBar();
 
     QPointer<QLabel> fpsLabel;
     QPointer<QLabel> connStatusLabel;
+    ppm_p6_buffer frame;
 
+    void relistIfLost();
     void setStatus(bool on);
     void showFps(int fps);
+
+    void launchVideoCap();
+    void stopVideoCap();
+    void camera_input(__u32 w, __u32 h, const uint8_t* mem, size_t size);
 };
 
 #endif // MAINWINDOW_H

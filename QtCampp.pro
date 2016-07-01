@@ -5,7 +5,7 @@
 #-------------------------------------------------
 
 QT       += core gui
-CONFIG   += c++11
+CONFIG   += c++11 -Wall
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 

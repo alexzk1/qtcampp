@@ -6,7 +6,8 @@ HEADERS += \
     $$PWD/deviceproperties.h \
     $$PWD/saveable_widget.h \
     $$PWD/selectdevicedialog.h \
-    $$PWD/settingsdialog.h
+    $$PWD/settingsdialog.h \
+    $$PWD/ppm_p6_buffer.h
 
 SOURCES += \
     $$PWD/globalsettings.cpp \
@@ -14,7 +15,8 @@ SOURCES += \
     $$PWD/deviceproperties.cpp \
     $$PWD/glob_statics_settings.cpp \
     $$PWD/selectdevicedialog.cpp \
-    $$PWD/settingsdialog.cpp
+    $$PWD/settingsdialog.cpp \
+    $$PWD/ppm_p6_buffer.cpp
 
 FORMS += \
     $$PWD/mainwindow.ui \

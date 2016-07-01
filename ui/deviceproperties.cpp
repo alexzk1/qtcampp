@@ -149,7 +149,7 @@ void DeviceProperties::controlValueChanged(const DeviceProperties::widgetted_pt 
 #ifdef _DEBUG
         qDebug() <<"Value "<<val<<c.name<<c.id<<" set code: " << r;
 #endif
-        if (r)
+        if (r < 0)
             tryReconnectOnError();
 
         //if (isNeedUpdate(c)) // on my sample camera this flag is not set, so must do full update of controls

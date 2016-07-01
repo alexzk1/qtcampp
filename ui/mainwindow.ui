@@ -42,18 +42,15 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>69</width>
+          <width>140</width>
           <height>451</height>
          </rect>
         </property>
        </widget>
       </widget>
-      <widget class="QOpenGLWidget" name="videoOut">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-         <horstretch>5</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
+      <widget class="QLabel" name="videoOut">
+       <property name="text">
+        <string/>
        </property>
       </widget>
      </widget>
@@ -167,7 +164,7 @@
      <normaloff>:/icons/icons/Settings-2-icon.png</normaloff>:/icons/icons/Settings-2-icon.png</iconset>
    </property>
    <property name="text">
-    <string>Show</string>
+    <string>&amp;Show</string>
    </property>
    <property name="iconText">
     <string>Settings</string>

@@ -33,7 +33,9 @@ v4l2device::device_info SelectDeviceDialog::pickDevice(QWidget* owner, bool pref
     if (QDialog::Accepted == dialog.exec())
     {
         res = dialog.getSelected();
-        stored.setCachedValue(res.devname.c_str());
+
+        if (!res.devname.empty()) //if empty selected - do not cache it
+            stored.setCachedValue(res.devname.c_str());
     }
 
     return res;

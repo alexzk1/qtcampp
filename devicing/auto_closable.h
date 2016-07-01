@@ -9,15 +9,16 @@
  *
 */
 #include <functional>
+#include <atomic>
 
 template <class T>
 class auto_closable
 {
 public:
     using ValueType = typename std::enable_if<std::is_fundamental<T>::value, T>::type;
-    using DctorType = std::function<void(T&)>;
+    using DctorType = std::function<void(ValueType)>;
 private:
-    ValueType value;
+    std::atomic<ValueType> value;
     DctorType dctor;
 public:
 
@@ -31,9 +32,15 @@ public:
     {
     }
 
+    explicit auto_closable(const DctorType& func):
+        value(),
+        dctor(func)
+    {
+    }
+
     ~auto_closable()
     {
-        dctor(value);
+        dctor(get());
     }
 
     explicit operator ValueType () const
@@ -43,7 +50,7 @@ public:
 
     ValueType get() const
     {
-        return value;
+        return static_cast<ValueType>(value);
     }
 };
 

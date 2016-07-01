@@ -1,6 +1,7 @@
 //License: MIT, (c) Oleksiy Zakharov, 2016, alexzkhr@gmail.com
 
 #include "globalsettings.h"
+#include <linux/videodev2.h>
 
 #define DECL_SETT(CLASS,KEY,DEF,args...) {KEY, widgetted_pt(new CLASS(KEY,DEF,args))}
 //-----------------------------------------------------------------------------------------------------------------------
@@ -15,6 +16,12 @@ const StaticSettingsMap &StaticSettingsMap::getGlobalSetts()
                                       DECL_SETT(GlobalFileStorable, "WorkingFolder", QDir::homePath(), tr("Working Folder"),
                                       tr("Set a folder where captured images and videos will be stored."),
                                       tr("Select working folder")),
+                                      DECL_SETT(GlobalStorableInt, "VideoBuffs", 10,
+                                            tr("Amount of the memory buffers."),
+                                            tr("Sets amount of memory buffers used. More is better for bigger resolutions but consumes RAM.\n"
+                                            "This value is optional for the driver and may be adjusted as needed automatically.\n"
+                                            "You must restart capture (or device) to take effect."),
+                                            3, 30),
 
                                    });
     return list;

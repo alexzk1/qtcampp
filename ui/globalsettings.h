@@ -1,3 +1,5 @@
+//License: MIT, (c) Oleksiy Zakharov, 2016, alexzkhr@gmail.com
+
 #ifndef GLOBALSETTINGS_H
 #define GLOBALSETTINGS_H
 
@@ -301,7 +303,15 @@ public:
     bool readBool(const QString& name) const
     {
         bool r = false;
-        readValue<bool, isatomic>(name, r);
+        readValue<decltype (r), isatomic>(name, r);
+        return r;
+    }
+
+    template<bool isatomic = true>
+    int readInt(const QString& name) const
+    {
+        int r;
+        readValue<decltype (r), isatomic>(name, r);
         return r;
     }
 

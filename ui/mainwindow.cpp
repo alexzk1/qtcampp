@@ -12,18 +12,24 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     lastPropPane(nullptr),
     ui(new Ui::MainWindow)
-
 {
     ui->setupUi(this);
     readSettings(this);
     setWindowTitle(qApp->applicationName());
     createStatusBar();
 
-    on_actionSelect_Camera_triggered(true);
+
+    connect(this, &MainWindow::hasFrame, this, [this](const QPixmap& pix)
+    {
+       ui->videoOut->setPixmap(pix);
+    },Qt::QueuedConnection); //a must, to resolve cross-thread - it does synchro
+
+    relistIfLost();
 }
 
 MainWindow::~MainWindow()
 {
+    stopVideoCap(); //must ensure thread is stopped and do not send us data, otherwise will crash calling camera_input
     writeSettings(this);
     delete ui;
 }
@@ -70,18 +76,21 @@ void MainWindow::on_actionSelect_Camera_triggered(bool prefferStored)
 
 void MainWindow::on_actionApply_All_triggered()
 {
+    relistIfLost();
     if (lastPropPane)
         lastPropPane->reapplyAll();
 }
 
 void MainWindow::on_actionReset_triggered()
 {
+    relistIfLost();
     if (lastPropPane)
         lastPropPane->resetToDefaults();
 }
 
 void MainWindow::device_lost()
 {
+    stopVideoCap(); //that will make automatic resume not posseble even if device will be properly picked
     setStatus(false);
     showFps(0);
 }
@@ -90,6 +99,7 @@ void MainWindow::device_back()
 {
     setStatus(true);
     showFps(0);
+    launchVideoCap();
 }
 
 void MainWindow::createStatusBar()
@@ -100,6 +110,27 @@ void MainWindow::createStatusBar()
     statusBar()->addWidget(fpsLabel);
     setStatus(false);
     showFps(0);
+}
+
+void MainWindow::relistIfLost()
+{
+    //if cable reconnected linux will assign new /dev/video* node most likelly
+    //so automatic resume is not possible, need to relist devices
+    bool needRelist = true;
+
+    if (lastPropPane)
+    {
+        auto dev = lastPropPane->getCurrDevice();
+        if (dev)
+        {
+            needRelist = !dev->is_valid_yet();
+            if (!needRelist)
+                device_back();
+        }
+    }
+
+    if (needRelist)
+        on_actionSelect_Camera_triggered(true);
 }
 
 void MainWindow::setStatus(bool on)
@@ -119,8 +150,41 @@ void MainWindow::showFps(int fps)
         fpsLabel->setText(tr("FPS: %1").arg(fps));
 }
 
+void MainWindow::launchVideoCap()
+{
+    if (lastPropPane)
+    {
+        auto dev = lastPropPane->getCurrDevice();
+        if (dev && !dev->isCameraRunning())
+        {
+            dev->cameraInput(std::bind(&MainWindow::camera_input, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+        }
+    }
+}
+
+void MainWindow::stopVideoCap()
+{
+    if (lastPropPane)
+    {
+        auto dev = lastPropPane->getCurrDevice();
+        if (dev)
+            dev->stopCameraInput();
+    }
+}
+
+void MainWindow::camera_input(__u32 w, __u32 h, const uint8_t *mem, size_t size)
+{
+    frame.set_data(w, h, mem, size);
+    emit hasFrame(frame.toPixmap());
+}
+
 void MainWindow::on_actionSettings_triggered()
 {
     SettingsDialog d(this);
     d.exec();
+
+    //reapplying settings
+    if (lastPropPane)
+        delete lastPropPane;
+    relistIfLost();
 }
