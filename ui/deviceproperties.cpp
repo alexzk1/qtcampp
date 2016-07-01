@@ -34,7 +34,7 @@ DeviceProperties::DeviceProperties(const v4l2device::device_info device, QWidget
     }
 }
 
-QWidget* DeviceProperties::connectGUI(const v4l2_query_ext_ctrl& c, const DeviceProperties::widgetted_pt &ptr)
+QWidget* DeviceProperties::connectGUI(const DeviceProperties::widgetted_pt &ptr)
 {
     QWidget* w = nullptr;
     if (ptr)
@@ -162,7 +162,7 @@ void DeviceProperties::listControls()
                 controlValueChanged(p, c);
 
             }, Qt::QueuedConnection);
-            auto w = connectGUI(c, ptr);
+            auto w = connectGUI(ptr);
             if (w)
                 w->setEnabled(isEnabled(c));
         }

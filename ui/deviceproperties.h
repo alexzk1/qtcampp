@@ -32,7 +32,7 @@ private:
     void listControls();
     void listFormats();
 
-    QWidget *connectGUI(const v4l2_query_ext_ctrl &c, const widgetted_pt& ptr);
+    QWidget *connectGUI(const widgetted_pt& ptr);
 
     static bool isEnabled(const v4l2_query_ext_ctrl& c);
     static bool isEnabled(__u32 flags);
