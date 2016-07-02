@@ -9,6 +9,7 @@ url='https://github.com/alexzk1/qtcampp'
 license=('GPL')
 depends=(
 qt5-base
+v4l-utils
 )
 
 makedepends=(
