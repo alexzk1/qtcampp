@@ -397,28 +397,31 @@ bool v4l2device::cameraInput(const frame_receiver& receiver, __u32 pixelFormat)
                                     cb = buf->memory[j+1];
                                     cr = buf->memory[j+3];
 
+
+
                                     r = y + (1.4065 * (cr - 128));
                                     g = y - (0.3455 * (cb - 128)) - (0.7169 * (cr - 128));
                                     b = y + (1.7790 * (cb - 128));
                                     color_correction();
 
-                                    destBuffer[i]  = static_cast<uint8_t>(r);
+                                    destBuffer[i]   = static_cast<uint8_t>(r);
                                     destBuffer[i+1] = static_cast<uint8_t>(g);
-                                    destBuffer[i+2]= static_cast<uint8_t>(b);
+                                    destBuffer[i+2] = static_cast<uint8_t>(b);
 
                                     //second pixel
                                     y =  buf->memory[j+2];
                                     cb = buf->memory[j+1];
                                     cr = buf->memory[j+3];
 
+
                                     r = y + (1.4065 * (cr - 128));
                                     g = y - (0.3455 * (cb - 128)) - (0.7169 * (cr - 128));
                                     b = y + (1.7790 * (cb - 128));
                                     color_correction();
 
-                                    destBuffer[i+3]  = static_cast<uint8_t>(r);
+                                    destBuffer[i+3] = static_cast<uint8_t>(r);
                                     destBuffer[i+4] = static_cast<uint8_t>(g);
-                                    destBuffer[i+5]= static_cast<uint8_t>(b);
+                                    destBuffer[i+5] = static_cast<uint8_t>(b);
                                 }
                             }
                             if (size > -1)

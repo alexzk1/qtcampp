@@ -22,10 +22,19 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->videoOut->setAlignment(Qt::AlignCenter);
     connect(this, &MainWindow::hasFrame, this, [this](const QPixmap& pix, int64_t ms)
     {
-        if (ms < 1)
-            showFps(0);
+        static int64_t avr = 0;
+        static uint64_t counter = 1;
+        if (!(counter % 15))
+        {
+            if (ms < 1)
+                showFps(0);
+            else
+                showFps(15000 / avr);
+            avr = 0;
+        }
         else
-            showFps(1000 / ms);
+            avr += ms;
+        ++counter;
         ui->videoOut->setPixmap(pix);
 
     },Qt::QueuedConnection); //a must, to resolve cross-thread - it does synchro
