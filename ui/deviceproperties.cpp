@@ -174,7 +174,7 @@ void DeviceProperties::listFormats()
     auto fmts = currDevice->listFormats();
     for (const auto& f: fmts)
     {
-        qDebug() <<"FORMAT: "<< reinterpret_cast<const char*>(f.description);
+        qDebug() <<"FORMAT: "<< reinterpret_cast<const char*>(f.description) << f.pixelformat;
     }
 }
 

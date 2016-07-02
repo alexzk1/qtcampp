@@ -27,10 +27,11 @@ const static uint64_t deviceTestEachNLoops = 1000; //not too often check if we d
 #pragma message ("Enabled QTCAMPP")
 #include "ui/globalsettings.h"
 #define BUFFERS_AMOUNT (StaticSettingsMap::getGlobalSetts().readInt("VideoBuffs"))
-
+#define CUSTOM_YUVY (StaticSettingsMap::getGlobalSetts().readBool("CustomYUYV"))
 #else
 //standalone, stl solution, maybe used elsewhere
 #define BUFFERS_AMOUNT 10
+#define CUSTOM_YUVY false
 
 #endif
 
@@ -304,6 +305,8 @@ bool v4l2device::cameraInput(const frame_receiver& receiver, __u32 pixelFormat)
             cam_buf.memory = V4L2_MEMORY_MMAP;
             uint64_t loopCounter = 0;
             auto  start = std::chrono::steady_clock::now();
+
+            bool useCustomConversion = CUSTOM_YUVY;
             while (interruptor)
             {
 
@@ -324,12 +327,12 @@ bool v4l2device::cameraInput(const frame_receiver& receiver, __u32 pixelFormat)
                             cam_buf.memory = buffers.at(0)->buf.memory;
 
                             get_fmt_cap(cam_buf.type, srcFormat);
+                            useCustomConversion &= srcFormat.fmt.pix.pixelformat & 1448695129; // my webcam uses this
 
                             destFormat = srcFormat;
                             destFormat.fmt.pix.pixelformat = pixelFormat;
                             v4lconvert_try_format(converter.get(), &destFormat, nullptr);
-
-                            destBuffer.reserve(destFormat.fmt.pix.sizeimage);
+                            destBuffer.reserve(destFormat.fmt.pix.sizeimage); //lib properly calculates buffer size in my case
                             destBuffer.resize(destBuffer.capacity());
 
                             streamon(cam_buf.type);
@@ -361,8 +364,63 @@ bool v4l2device::cameraInput(const frame_receiver& receiver, __u32 pixelFormat)
 
                         if (!(cam_buf.flags & V4L2_BUF_FLAG_ERROR) && converter)
                         {
-                            auto size = v4lconvert_convert(converter.get(), &srcFormat,
+                            int size = static_cast<int>(destBuffer.size());
+                            //todo: try to send data from camera as is to qt - so maybe ...autogain is done by converter...
+                            if (!useCustomConversion)
+                                size = v4lconvert_convert(converter.get(), &srcFormat,
                                                            &destFormat, buf->memory, static_cast<int>(buf->mem_len), destBuffer.data(), static_cast<int>(destBuffer.size()));
+                            else
+                            {
+                                //from here http://stackoverflow.com/questions/9098881/convert-from-yuv-to-rgb-in-c-android-ndk
+                                int y;
+                                int cr;
+                                int cb;
+
+                                double r;
+                                double g;
+                                double b;
+                                auto color_correction = [&r, &g, &b]()
+                                {
+                                    //This prevents colour distortions in your rgb image
+                                    if (r < 0) r = 0;
+                                    else if (r > 255) r = 255;
+                                    if (g < 0) g = 0;
+                                    else if (g > 255) g = 255;
+                                    if (b < 0) b = 0;
+                                    else if (b > 255) b = 255;
+                                };
+
+                                for (size_t i = 0, j = 0, sz = destBuffer.size(); i < sz; i+=6, j+=4)
+                                {
+                                    //first pixel
+                                    y =  buf->memory[j];
+                                    cb = buf->memory[j+1];
+                                    cr = buf->memory[j+3];
+
+                                    r = y + (1.4065 * (cr - 128));
+                                    g = y - (0.3455 * (cb - 128)) - (0.7169 * (cr - 128));
+                                    b = y + (1.7790 * (cb - 128));
+                                    color_correction();
+
+                                    destBuffer[i]  = static_cast<uint8_t>(r);
+                                    destBuffer[i+1] = static_cast<uint8_t>(g);
+                                    destBuffer[i+2]= static_cast<uint8_t>(b);
+
+                                    //second pixel
+                                    y =  buf->memory[j+2];
+                                    cb = buf->memory[j+1];
+                                    cr = buf->memory[j+3];
+
+                                    r = y + (1.4065 * (cr - 128));
+                                    g = y - (0.3455 * (cb - 128)) - (0.7169 * (cr - 128));
+                                    b = y + (1.7790 * (cb - 128));
+                                    color_correction();
+
+                                    destBuffer[i+3]  = static_cast<uint8_t>(r);
+                                    destBuffer[i+4] = static_cast<uint8_t>(g);
+                                    destBuffer[i+5]= static_cast<uint8_t>(b);
+                                }
+                            }
                             if (size > -1)
                                 try
                             {
@@ -370,6 +428,7 @@ bool v4l2device::cameraInput(const frame_receiver& receiver, __u32 pixelFormat)
                                 start = std::chrono::steady_clock::now();
 
                                 //be aware that we output pure pixels there, so listener must add proper headers to load as image
+
                                 receiver(destFormat.fmt.pix.width, destFormat.fmt.pix.height, destBuffer.data(), static_cast<size_t>(size), duration.count());
 
                             } catch (...)

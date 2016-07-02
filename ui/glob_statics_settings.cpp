@@ -29,6 +29,10 @@ const StaticSettingsMap &StaticSettingsMap::getGlobalSetts()
                                             tr("Device presence test period (seconds)."),
                                             tr("It is used if \"Check Device Pereodically\" is enabled.\nLower (faster) values may lower FPS."),
                                             1, 60),
+
+                                            DECL_SETT(GlobalStorableBool, "CustomYUYV", false, tr("Custom YUYV conversion."),
+                                            tr("If enabled and camera uses YUVY format it will use built-in conversion instead library,\n"
+                                            "which avoids applying auto-gain etc. by software.\nMay be helpfull to picture bright objects on dark back like planets over telescope.")),
                                         });
     return list;
 }
