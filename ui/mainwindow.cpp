@@ -71,12 +71,14 @@ void MainWindow::recurseRead(QSettings &settings, QObject *object)
 {
     Q_UNUSED(object); //not really recursion (or tree walk)
     ui->splitter->restoreState(settings.value("splitter").toByteArray());
+    this->restoreState(settings.value("mainwinstate").toByteArray());
 }
 
 void MainWindow::recurseWrite(QSettings &settings, QObject *object)
 {
     Q_UNUSED(object);
     settings.setValue("splitter", ui->splitter->saveState());
+    settings.setValue("mainwinstate", this->saveState());
 }
 
 void MainWindow::on_actionSelect_Camera_triggered(bool prefferStored)
