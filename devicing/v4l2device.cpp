@@ -164,7 +164,7 @@ bool v4l2device::open(const std::string &device, bool tryWraper)
         //else fallback to regular i/o
     }
 #ifdef _DEBUG
-        std::cerr<<"Opened FD: "<<fd<<std::endl;
+    std::cerr<<"Opened FD: "<<fd<<std::endl;
 #endif
     m_device = device;
     m_fd.reset(new dev_hndl(fd, [this](int f)
@@ -365,10 +365,10 @@ bool v4l2device::cameraInput(const frame_receiver& receiver, __u32 pixelFormat)
                         if (!(cam_buf.flags & V4L2_BUF_FLAG_ERROR) && converter)
                         {
                             int size = static_cast<int>(destBuffer.size());
-                            //todo: try to send data from camera as is to qt - so maybe ...autogain is done by converter...
+                            //done: custom conversion added for "try to send data from camera as is to qt - so maybe ...autogain is done by converter..."
                             if (!useCustomConversion)
                                 size = v4lconvert_convert(converter.get(), &srcFormat,
-                                                           &destFormat, buf->memory, static_cast<int>(buf->mem_len), destBuffer.data(), static_cast<int>(destBuffer.size()));
+                                                          &destFormat, buf->memory, static_cast<int>(buf->mem_len), destBuffer.data(), static_cast<int>(destBuffer.size()));
                             else
                             {
                                 //from here http://stackoverflow.com/questions/9098881/convert-from-yuv-to-rgb-in-c-android-ndk

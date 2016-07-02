@@ -310,7 +310,7 @@ public:
     template<bool isatomic = true>
     int readInt(const QString& name) const
     {
-        int r;
+        int r = 0;
         readValue<decltype (r), isatomic>(name, r);
         return r;
     }

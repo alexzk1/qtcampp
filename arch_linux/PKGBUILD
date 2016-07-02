@@ -1,0 +1,40 @@
+# Maintainer: Alex <alexzkhr public at gmail dot com>
+
+pkgname=qtcampp
+pkgver=r18.22ac6f4
+pkgrel=1
+pkgdesc='A free, Open Source Linux Webcamera Software intendent to be used with telescope.'
+arch=('i686' 'x86_64')
+url='https://github.com/alexzk1/qtcampp'
+license=('GPL')
+depends=(
+qt5-base
+)
+
+makedepends=(
+git
+qtchooser
+)
+source=(
+'git://github.com/alexzk1/qtcampp.git'
+)
+sha256sums=('SKIP')
+_gitname='qtcampp'
+prepare() {    
+   cd $_gitname
+}
+
+pkgver() {
+  cd $_gitname
+  printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+build() {
+  cd $_gitname
+  qmake
+  make
+}
+package() {
+  cd $_gitname
+  #make INSTALL_ROOT="$pkgdir" install  
+  install -Dm755 "$srcdir"/qtcampp/qtcampp "$pkgdir"/usr/bin/qtcampp
+}

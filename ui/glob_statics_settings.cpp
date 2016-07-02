@@ -31,8 +31,8 @@ const StaticSettingsMap &StaticSettingsMap::getGlobalSetts()
                                             1, 60),
 
                                             DECL_SETT(GlobalStorableBool, "CustomYUYV", false, tr("Custom YUYV conversion."),
-                                            tr("If enabled and camera uses YUVY format it will use built-in conversion instead library,\n"
-                                            "which avoids applying auto-gain etc. by software.\nMay be helpfull to picture bright objects on dark back like planets over telescope.")),
+                                            tr("If enabled and camera uses YUVY format it will use custom conversion instead of v4lutils lib,\n"
+                                            "which shoud avoid applying auto-gain etc.\nMay be helpfull to picture bright objects on dark back like planets over telescope.")),
                                         });
     return list;
 }
