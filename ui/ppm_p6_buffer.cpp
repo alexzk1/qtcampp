@@ -19,6 +19,8 @@ void ppm_p6_buffer::set_data(uint32_t w, uint32_t h, const uint8_t *mem, size_t 
     {
         header = utils::string_format("P6\n%u %u\n255\n", w, h);
         had_change = true;
+        lastW = w;
+        lastH = h;
     }
     auto hdrlen = header.length();
 
