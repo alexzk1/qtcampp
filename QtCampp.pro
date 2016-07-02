@@ -5,7 +5,8 @@
 #-------------------------------------------------
 
 QT       += core gui
-CONFIG   += c++11 -Wall
+
+QMAKE_CXXFLAGS += -std=c++11 -Wall -mtune=native -mfpmath=sse
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
