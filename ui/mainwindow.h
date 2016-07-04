@@ -26,6 +26,7 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+    static qint64 getNextFileId();
 protected:
     QPointer<DeviceProperties> lastPropPane;
 
@@ -61,6 +62,7 @@ private:
     std::atomic<bool> doASnap;
 
     void saveSnapshoot(const QPixmap& pxm);
+
     void relistIfLost();
     void forceRelist();
     void pereodicTestRunStop();

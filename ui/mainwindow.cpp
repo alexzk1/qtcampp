@@ -163,10 +163,8 @@ void MainWindow::saveSnapshoot(const QPixmap &pxm)
     int index = StaticSettingsMap::getGlobalSetts().readInt("Wp0SingleShotFormat");
     QString folder; //for thread-safety will do it here
     StaticSettingsMap::getGlobalSetts().readValue<QString, false>("WorkingFolder", folder);
-    static GlobSaveableTempl<qint64, true> fileNamer("FileNamerCounter", 0);
-    qint64 next = fileNamer.getCachedValue();
-    fileNamer.setCachedValue(next + 1);
-    fileNamer.flush(); //important counter, don't want to loose on crash
+
+    auto next = getNextFileId();
 
     auto executor = [this, index, folder, next, pxm]()
     {
@@ -178,6 +176,15 @@ void MainWindow::saveSnapshoot(const QPixmap &pxm)
 
     std::thread tmp(executor);
     tmp.detach();
+}
+
+qint64 MainWindow::getNextFileId()
+{
+    static GlobSaveableTempl<qint64, true> fileNamer("FileNamerCounter", 0);
+    qint64 next = fileNamer.getCachedValue();
+    fileNamer.setCachedValue(next + 1);
+    fileNamer.flush(); //important counter, don't want to loose on crash
+    return next;
 }
 
 void MainWindow::relistIfLost()
