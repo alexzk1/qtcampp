@@ -8,6 +8,7 @@
 #include <QPixmap>
 #include <memory>
 #include <QTimer>
+#include <atomic>
 
 #include "saveable_widget.h"
 #include "deviceproperties.h"
@@ -45,6 +46,8 @@ private slots:
 
     void on_actionNight_Mode_triggered(bool checked);
 
+    void on_actionSingleShoot_triggered();
+
 signals:
     void hasFrame(QPixmap pix, int64_t ms_per_frame); //used to resolve cross thread from puller to GUI
 private:
@@ -55,7 +58,9 @@ private:
     QPointer<QLabel> connStatusLabel;
     ppm_p6_buffer frame;
     QPointer<QTimer> checkTimer;
+    std::atomic<bool> doASnap;
 
+    void saveSnapshoot(const QPixmap& pxm);
     void relistIfLost();
     void forceRelist();
     void pereodicTestRunStop();

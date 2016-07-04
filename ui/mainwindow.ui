@@ -29,7 +29,7 @@
       </property>
       <widget class="QScrollArea" name="scrollControls">
        <property name="horizontalScrollBarPolicy">
-        <enum>Qt::ScrollBarAlwaysOff</enum>
+        <enum>Qt::ScrollBarAsNeeded</enum>
        </property>
        <property name="sizeAdjustPolicy">
         <enum>QAbstractScrollArea::AdjustToContentsOnFirstShow</enum>
@@ -73,6 +73,8 @@
     <addaction name="actionSelect_Camera"/>
     <addaction name="actionApply_All"/>
     <addaction name="actionReset"/>
+    <addaction name="separator"/>
+    <addaction name="actionSingleShoot"/>
    </widget>
    <widget class="QMenu" name="menuSettings">
     <property name="title">
@@ -107,6 +109,7 @@
    <addaction name="actionReset"/>
    <addaction name="separator"/>
    <addaction name="actionSettings"/>
+   <addaction name="actionSingleShoot"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionSelect_Camera">
@@ -189,7 +192,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Fullscreen</string>
+    <string>&amp;Fullscreen</string>
    </property>
    <property name="toolTip">
     <string>Resize window to take full screen</string>
@@ -203,13 +206,31 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Night Mode</string>
+    <string>&amp;Night Mode</string>
    </property>
    <property name="toolTip">
     <string>Eyes saving mode for darkness.</string>
    </property>
    <property name="shortcut">
     <string>F12</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
+   </property>
+  </action>
+  <action name="actionSingleShoot">
+   <property name="icon">
+    <iconset resource="../resources.qrc">
+     <normaloff>:/icons/icons/Image-capture-icon.png</normaloff>:/icons/icons/Image-capture-icon.png</iconset>
+   </property>
+   <property name="text">
+    <string>Single Shoot</string>
+   </property>
+   <property name="toolTip">
+    <string>Takes single picture</string>
+   </property>
+   <property name="shortcut">
+    <string>Shift+Return</string>
    </property>
    <property name="shortcutContext">
     <enum>Qt::ApplicationShortcut</enum>

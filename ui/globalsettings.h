@@ -565,11 +565,15 @@ public:
         cb = nullptr;
     }
 
-    QVariant getUserData(int index) const
+    QVariant getUserData() const
     {
        QVariant r;
        if (cb)
+       {
+           int index = getStoredSelection();
+           if (index > -1)
            r = cb->itemData(index, Qt::UserRole);
+       }
        return r;
     }
     DECL_DESTRUCTOR(GlobalComboBoxStorable);

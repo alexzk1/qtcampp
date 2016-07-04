@@ -3,6 +3,9 @@
 #include <QDesktopWidget>
 #include <QVBoxLayout>
 #include <QPixmap>
+#include <QDate>
+#include <QDir>
+#include <array>
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
@@ -15,7 +18,8 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     lastPropPane(nullptr),
     ui(new Ui::MainWindow),
-    checkTimer(new QTimer(this))
+    checkTimer(new QTimer(this)),
+    doASnap(false)
 {
     ui->setupUi(this);
     readSettings(this);
@@ -39,6 +43,11 @@ MainWindow::MainWindow(QWidget *parent) :
             avr += ms;
         ++counter;
         ui->videoOut->setPixmap(pix);
+        if (doASnap)
+        {
+            saveSnapshoot(pix);
+            doASnap = false;
+        }
 
     },Qt::QueuedConnection); //a must, to resolve cross-thread - it does synchro
 
@@ -139,6 +148,38 @@ void MainWindow::createStatusBar()
     showFps(0);
 }
 
+void MainWindow::saveSnapshoot(const QPixmap &pxm)
+{
+    const static std::string formats[]
+    {
+        "png",
+        "ppm",
+        "jpg",
+    };
+
+    //that will remain the same between program launches, so kinda "night picturing", when you start at 9pm and end-up at 6am -- all will be in same folder
+    const static QString dateDir = QDate::currentDate().toString("dd_MMM_yyyy");
+
+    int index = StaticSettingsMap::getGlobalSetts().readInt("Wp0SingleShotFormat");
+    QString folder; //for thread-safety will do it here
+    StaticSettingsMap::getGlobalSetts().readValue<QString, false>("WorkingFolder", folder);
+    static GlobSaveableTempl<qint64, true> fileNamer("FileNamerCounter", 0);
+    qint64 next = fileNamer.getCachedValue();
+    fileNamer.setCachedValue(next + 1);
+    fileNamer.flush(); //important counter, don't want to loose on crash
+
+    auto executor = [this, index, folder, next, pxm]()
+    {
+        QString path= folder +"/" +dateDir;
+        QDir dir;dir.mkpath(path);
+        auto fn = QString("%1/%2.%3").arg(path).arg(next,8,10,QChar('0')).arg(formats[index].c_str());
+        pxm.save(fn, formats[index].c_str());
+    };
+
+    std::thread tmp(executor);
+    tmp.detach();
+}
+
 void MainWindow::relistIfLost()
 {
     //if cable reconnected linux will assign new /dev/video* node most likelly
@@ -203,11 +244,13 @@ void MainWindow::showFps(int fps)
 
 void MainWindow::launchVideoCap()
 {
+
     if (lastPropPane)
     {
         auto dev = lastPropPane->getCurrDevice();
         if (dev && !dev->isCameraRunning())
         {
+            doASnap = false;
             dev->cameraInput(std::bind(&MainWindow::camera_input, this, std::placeholders::_1,
                                        std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5));
         }
@@ -216,6 +259,7 @@ void MainWindow::launchVideoCap()
 
 void MainWindow::stopVideoCap()
 {
+    doASnap = false;
     if (lastPropPane)
     {
         auto dev = lastPropPane->getCurrDevice();
@@ -251,4 +295,9 @@ void MainWindow::on_actionNight_Mode_triggered(bool checked)
         qApp->setStyleSheet(nightScheme);
     else
         qApp->setStyleSheet("");
+}
+
+void MainWindow::on_actionSingleShoot_triggered()
+{
+    doASnap = true;
 }

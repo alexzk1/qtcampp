@@ -69,7 +69,7 @@ void DeviceProperties::controlValueChanged(const DeviceProperties::widgetted_pt 
             if (cb)
             {
                 //now restoring device's index
-                val = cb->getUserData(static_cast<int>(val)).toLongLong();
+                val = cb->getUserData().toLongLong();
             }
         }
         int r = currDevice->setControlValue(c, val);
@@ -194,11 +194,10 @@ void DeviceProperties::listFormats()
         {
             auto p = wp.lock();
             //set new format selected to device
-            int ind = p->getAsVariant().toInt();
             GlobalComboBoxStorable* cb = dynamic_cast<GlobalComboBoxStorable*>(p.get());
             if (cb)
             {
-                __u32 val = static_cast<__u32>(0xFFFFFFFF & cb->getUserData(ind).toLongLong());
+                __u32 val = static_cast<__u32>(0xFFFFFFFF & cb->getUserData().toLongLong());
                 //push to device
                 if (currDevice)
                     currDevice->setSourcePixelFormat(val);

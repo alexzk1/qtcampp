@@ -10,7 +10,10 @@ QMAKE_CXXFLAGS += -std=c++11 -Wall -mtune=native -mfpmath=sse
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-debug: DEFINES += _DEBUG
+CONFIG(debug)
+{
+   DEFINES += _DEBUG
+}
 
 include(./libusb/libusb.pri)
 include(./devicing/devicing.pri)
