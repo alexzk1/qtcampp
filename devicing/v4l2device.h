@@ -100,6 +100,7 @@ private:
     v4l2_capability m_capability;
     interruptor_t interruptor;
     input_thread_ptr m_thread;
+    std::atomic<bool> pixelFormatChanged;
 protected:
     int     fd() const;
     bool    querycap(v4l2_capability &cap) const;
@@ -145,6 +146,7 @@ public:
 
     //multithreaded camera capturing, setting
     bool cameraInput(const frame_receiver &receiver, __u32 pixelFormat = V4L2_PIX_FMT_RGB24);
+    int setSourcePixelFormat( __u32 frm, __u32 type = V4L2_BUF_TYPE_VIDEO_CAPTURE);
     void stopCameraInput();
     bool isCameraRunning();
 };

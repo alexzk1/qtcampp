@@ -139,21 +139,27 @@ void MainWindow::relistIfLost()
 {
     //if cable reconnected linux will assign new /dev/video* node most likelly
     //so automatic resume is not possible, need to relist devices
-    bool needRelist = true;
-
-    if (lastPropPane)
+    //but timer may tick too fast while user has GUI popped - stop that
+    static std::atomic_flag alreadyOpened = ATOMIC_FLAG_INIT;
+    if (!alreadyOpened.test_and_set())
     {
-        auto dev = lastPropPane->getCurrDevice();
-        if (dev)
-        {
-            needRelist = !dev->is_valid_yet();
-            if (!needRelist)
-                device_back();
-        }
-    }
+        bool needRelist = true;
 
-    if (needRelist)
-        on_actionSelect_Camera_triggered(true);
+        if (lastPropPane)
+        {
+            auto dev = lastPropPane->getCurrDevice();
+            if (dev)
+            {
+                needRelist = !dev->is_valid_yet();
+                if (!needRelist)
+                    device_back();
+            }
+        }
+
+        if (needRelist)
+            on_actionSelect_Camera_triggered(true);
+        alreadyOpened.clear();
+    }
 }
 
 void MainWindow::forceRelist()

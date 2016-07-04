@@ -6,6 +6,8 @@
 #include <QDebug>
 #include <QTimer>
 
+#define FORMAT_WIDGET_ID 0x80000001
+
 const static auto setPol = [](QWidget *w)
 {
     QSizePolicy pol = w->sizePolicy();
@@ -124,24 +126,24 @@ void DeviceProperties::listControls()
                 int def = 0;
                 for (const auto &m : menu)
                 {
-                   if (c.default_value == m.menu.index)
-                   {
-                       break;
-                   }
-                   ++def;
+                    if (c.default_value == m.menu.index)
+                    {
+                        break;
+                    }
+                    ++def;
                 }
                 ptr.reset(new GlobalComboBoxStorable(QString(c.name), def, QString(c.name), "",
                                                      [menu](QStringList& s, QVariantList& v){
-                                                         for (auto& itm : menu)
-                                                         {
-                                                             if (itm.isInteger)
-                                                               s << QString::number(itm.menu.value, 16);
-                                                             else
-                                                               s << QString(reinterpret_cast<const char*>(itm.menu.name));
-                                                             v << itm.menu.index; //...and hold remap as user data for laters
-                                                         }
-                                                     }
-                                                ));
+                              for (auto& itm : menu)
+                              {
+                                  if (itm.isInteger)
+                                  s << QString::number(itm.menu.value, 16);
+                                  else
+                                  s << QString(reinterpret_cast<const char*>(itm.menu.name));
+                                  v << itm.menu.index; //...and hold remap as user data for laters
+                              }
+                          }
+                          ));
             };
                 break;
                 //todo: add more control types, like bit-fields
@@ -172,9 +174,39 @@ void DeviceProperties::listControls()
 void DeviceProperties::listFormats()
 {
     auto fmts = currDevice->listFormats();
-    for (const auto& f: fmts)
+    if (fmts.size())
     {
-        qDebug() <<"FORMAT: "<< reinterpret_cast<const char*>(f.description) << f.pixelformat;
+        widgetted_pt ptr;
+        ptr.reset(new GlobalComboBoxStorable("video_format", 0, tr("Input Video Format"), tr("Video Format(s) supported and used by camera."),
+                                             [fmts](QStringList& s, QVariantList& v)
+        {
+                      for (const auto& f: fmts)
+                      {
+                          s << QString(reinterpret_cast<const char*>(f.description));
+                          v << f.pixelformat;
+                      }
+        }));
+
+        holder[FORMAT_WIDGET_ID] = ptr;
+        widgetted_ptw wp = ptr;
+
+        connect(ptr.get(), &ISaveableWidget::valueChanged, this, [this, wp]()
+        {
+            auto p = wp.lock();
+            //set new format selected to device
+            int ind = p->getAsVariant().toInt();
+            GlobalComboBoxStorable* cb = dynamic_cast<GlobalComboBoxStorable*>(p.get());
+            if (cb)
+            {
+                __u32 val = static_cast<__u32>(0xFFFFFFFF & cb->getUserData(ind).toLongLong());
+                //push to device
+                if (currDevice)
+                    currDevice->setSourcePixelFormat(val);
+            }
+
+        }, Qt::QueuedConnection);
+
+        connectGUI(ptr);
     }
 }
 

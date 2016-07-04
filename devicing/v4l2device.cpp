@@ -50,7 +50,8 @@ int v4l2device::fd() const
 
 v4l2device::v4l2device():
     interruptor(true),
-    m_thread(nullptr)
+    m_thread(nullptr),
+    pixelFormatChanged(false)
 {
     memset(&m_capability, 0, sizeof(m_capability));
 }
@@ -275,14 +276,14 @@ v4l2device::device_formats_t v4l2device::listFormats(__u32 type)
     return res;
 }
 
-bool v4l2device::cameraInput(const frame_receiver& receiver, __u32 pixelFormat)
+bool v4l2device::cameraInput(const frame_receiver& receiver, __u32 pixelFormatReceiver)
 {
     using TimeT = std::chrono::milliseconds;
 
     bool res = false;
     if (is_valid_yet() && !m_thread)
     {
-        m_thread.reset(new std::thread([this, receiver, pixelFormat]()
+        m_thread.reset(new std::thread([this, receiver, pixelFormatReceiver]()
         {
             //thread function
             bool lostDevice = true;
@@ -295,9 +296,9 @@ bool v4l2device::cameraInput(const frame_receiver& receiver, __u32 pixelFormat)
 
 
             //cleansing structs, guess driver will change only some bits
-            memset(&srcFormat,  0, sizeof(srcFormat));
-            memset(&destFormat, 0, sizeof(destFormat));
-            memset(&cam_buf,    0, sizeof(cam_buf));
+            memset(&srcFormat,  0, sizeof(v4l2_format));
+            memset(&destFormat, 0, sizeof(v4l2_format));
+            memset(&cam_buf,    0, sizeof(v4l2_buffer));
 
 
             //default values
@@ -321,6 +322,7 @@ bool v4l2device::cameraInput(const frame_receiver& receiver, __u32 pixelFormat)
                         });
                         if (converter)
                         {
+                            pixelFormatChanged = false;
                             for (auto& b : buffers) //enqueue all buffers
                                 ioctl(VIDIOC_QBUF, &b->buf);
                             cam_buf.type   = buffers.at(0)->buf.type;
@@ -328,9 +330,10 @@ bool v4l2device::cameraInput(const frame_receiver& receiver, __u32 pixelFormat)
 
                             get_fmt_cap(cam_buf.type, srcFormat);
                             useCustomConversion &= srcFormat.fmt.pix.pixelformat & 1448695129; // my webcam uses this
+                            useCustomConversion &= (V4L2_PIX_FMT_RGB24 == pixelFormatReceiver);
 
                             destFormat = srcFormat;
-                            destFormat.fmt.pix.pixelformat = pixelFormat;
+                            destFormat.fmt.pix.pixelformat = pixelFormatReceiver;
                             v4lconvert_try_format(converter.get(), &destFormat, nullptr);
                             destBuffer.reserve(destFormat.fmt.pix.sizeimage); //lib properly calculates buffer size in my case
                             destBuffer.resize(destBuffer.capacity());
@@ -453,14 +456,19 @@ bool v4l2device::cameraInput(const frame_receiver& receiver, __u32 pixelFormat)
                 if (++loopCounter % deviceTestEachNLoops == 0)
                     lostDevice = lostDevice || !is_valid_yet();
 
-                if (lostDevice)
+                if (lostDevice || pixelFormatChanged)
                 {
                     //lets close full subsystem, maybe it will be long to re-init it back, but ...
-                    std::cerr << "Lost device ...sleeping, restarting all." <<std::endl;
+
                     streamoff(cam_buf.type);
                     free_buffers(buffers);
-                    std::this_thread::sleep_for(std::chrono::duration<decltype (lostDevicePauseMs), std::milli>(lostDevicePauseMs));
+                    if (lostDevice)
+                    {
+                        std::cerr << "Lost device ...sleeping, restarting all." <<std::endl;
+                        std::this_thread::sleep_for(std::chrono::duration<decltype (lostDevicePauseMs), std::milli>(lostDevicePauseMs));
+                    }
                 }
+                lostDevice |= pixelFormatChanged;
             }
             streamoff(cam_buf.type);
             free_buffers(buffers);
@@ -478,6 +486,25 @@ bool v4l2device::cameraInput(const frame_receiver& receiver, __u32 pixelFormat)
         });
     }
     return res;
+}
+
+int v4l2device::setSourcePixelFormat(__u32 frm, __u32 type)
+{
+    //ok not sure, my camera has 1 format only, so even adding fake test changes nothing
+    //maybe driver just ignores set request
+    v4l2_format src;
+    memset(&src,  0, sizeof(v4l2_format));
+    get_fmt_cap(type, src);
+    src.fmt.pix.pixelformat = frm;
+    int r = EBUSY;
+    for(int i =0; i < 30 && r == EBUSY; ++i)
+    {
+          r = set_fmt_cap(src);
+          if (r == EBUSY)
+             std::this_thread::sleep_for(std::chrono::duration<int, std::milli>(10));
+    }
+    pixelFormatChanged = r > -1;
+    return r;
 }
 
 void v4l2device::stopCameraInput()
@@ -592,6 +619,14 @@ bool v4l2device::get_fmt_cap(__u32 type, v4l2_format &fmt) const
 
 int v4l2device::set_fmt_cap(v4l2_format &fmt) const
 {
+    if (V4L2_TYPE_IS_MULTIPLANAR(fmt.type))
+    {
+        fmt.fmt.pix_mp.plane_fmt[0].bytesperline = 0;
+        fmt.fmt.pix_mp.plane_fmt[1].bytesperline = 0;
+    }
+    else
+        fmt.fmt.pix.bytesperline = 0;
+
     return ioctl(VIDIOC_S_FMT, &fmt);
 }
 
