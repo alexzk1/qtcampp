@@ -26,7 +26,7 @@
 #include <QDir>
 #include <QFileDialog>
 #include <QLabel>
-
+#include <atomic>
 #include "variant_convert.h"
 #include "singleton.h"
 
@@ -38,18 +38,16 @@ namespace nmsp_gs
         friend class GlobalStorage;
         const QString  key_m;
         const QVariant default_m;
-        int   currSubgroup;
+        std::atomic<int>   currSubgroup;
 
         void openGroup(QSettings& s) const;
         void closeGroup(QSettings& s) const;
-
+        void load(QSettings &s, const QVariant& def);
     protected:
         QString group;
 
         virtual QVariant valueAsVariant() const = 0 ;
         virtual void     setVariantValue(const QVariant& value) = 0;
-
-        void    switchSubgroup(int id);
 
         const   QString& key() const;
         virtual QVariant getDefault();
@@ -58,11 +56,12 @@ namespace nmsp_gs
         SaveableToStorage(const SaveableToStorage&) = delete;
         explicit SaveableToStorage(const QString& key, const QVariant& def, const QString& group);
 
-        void load();
     public:
 
         void flush(); //forcing save
-        virtual void reload() = 0;//because child is template, so it will have to have own reload
+        void reload();
+        void switchSubgroup(int id);
+
         virtual void setDefaultValue() = 0;
 
         virtual ~SaveableToStorage();
@@ -86,7 +85,7 @@ private:
 protected:
     virtual void setVariantValue(const QVariant& val) override
     {
-        value = variantTo<T>(val);
+        setCachedValue(variantTo<T>(val));
     }
 
 public:
@@ -132,10 +131,6 @@ public:
         setCachedValue(v);
         return *this;
     }
-    virtual void reload() override
-    {
-        load();
-    }
 
     virtual void setDefaultValue() override
     {
@@ -159,7 +154,7 @@ public:
     {
         return lastWidget = createWidget2();
     }
-
+    virtual void switchSubgroup(int id) = 0;
     virtual void exec(){} //maybe called by the program elsewhere, for example for folder selector it must pop folder selector dialog
     virtual void valueSet() = 0; //should update GUI, called when value was modified outside user interaction by direct setter
     virtual void setNewGroup(const QString& group) = 0; //sets new settings' group
@@ -188,6 +183,13 @@ public:
     virtual void set(const T& s)
     {
         state = s;
+        emit valueChanged();
+        valueSet();
+    }
+
+    virtual void switchSubgroup(int id) override final
+    {
+        state.switchSubgroup(id);
         emit valueChanged();
         valueSet();
     }

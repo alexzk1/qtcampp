@@ -290,3 +290,9 @@ void DeviceProperties::updateControls()
         }
     }
 }
+
+void DeviceProperties::setSubgroup(int id)
+{
+    for (auto & v : holder)
+        v.second->switchSubgroup(id);
+}

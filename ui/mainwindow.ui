@@ -81,6 +81,7 @@
      <string>Setti&amp;ngs</string>
     </property>
     <addaction name="actionSettings"/>
+    <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuWindow">
     <property name="title">
@@ -224,7 +225,7 @@
      <normaloff>:/icons/icons/Image-capture-icon.png</normaloff>:/icons/icons/Image-capture-icon.png</iconset>
    </property>
    <property name="text">
-    <string>Single Shoot</string>
+    <string>S&amp;ingle Shoot</string>
    </property>
    <property name="toolTip">
     <string>Takes single picture</string>

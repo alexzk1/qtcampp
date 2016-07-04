@@ -6,6 +6,7 @@
 #include <QDate>
 #include <QDir>
 #include <array>
+#include <QAction>
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
@@ -19,12 +20,15 @@ MainWindow::MainWindow(QWidget *parent) :
     lastPropPane(nullptr),
     ui(new Ui::MainWindow),
     checkTimer(new QTimer(this)),
-    doASnap(false)
+    doASnap(false),
+    presetsGroup(new QActionGroup(this)),
+    initialPreset(nullptr)
 {
     ui->setupUi(this);
     readSettings(this);
     setWindowTitle(qApp->applicationName());
     createStatusBar();
+    buildGuiParts();
 
     ui->videoOut->setAlignment(Qt::AlignCenter);
     connect(this, &MainWindow::hasFrame, this, [this](const QPixmap& pix, int64_t ms)
@@ -97,6 +101,12 @@ void MainWindow::recurseWrite(QSettings &settings, QObject *object)
 void MainWindow::on_actionSelect_Camera_triggered(bool prefferStored)
 {
     auto dev = SelectDeviceDialog::pickDevice(this, prefferStored);
+
+    if (initialPreset) //if we got re-created device frame - reset preset to default
+        initialPreset->setChecked(true);
+
+    //The widget becomes a child of the scroll area, and will be destroyed when the scroll area is deleted
+    //or when a new widget is set.
     ui->scrollControls->setWidget(lastPropPane = new DeviceProperties(dev));
 
     connect(lastPropPane, &DeviceProperties::deviceDisconnected, this, &MainWindow::device_lost, Qt::QueuedConnection);
@@ -108,6 +118,8 @@ void MainWindow::on_actionSelect_Camera_triggered(bool prefferStored)
         device_back();
     else
         device_lost();
+
+
 }
 
 void MainWindow::on_actionApply_All_triggered()
@@ -136,6 +148,7 @@ void MainWindow::device_back()
 {
     setStatus(true);
     launchVideoCap();
+    //presetsGroup->checkedAction()->trigger();
 }
 
 void MainWindow::createStatusBar()
@@ -279,6 +292,33 @@ void MainWindow::camera_input(__u32 w, __u32 h, const uint8_t *mem, size_t size,
 {
     frame.set_data(w, h, mem, size);
     emit hasFrame(frame.toPixmap(), ms_per_frame);
+}
+
+void MainWindow::buildGuiParts()
+{
+    if (presetsGroup)
+    {
+        for (int i = 0 ; i < 10; ++i)
+        {
+            QString ks = QString("alt+%1").arg(i);
+            auto a = ui->menuSettings->addAction(tr("Camera Preset %1").arg(i));
+            a->setShortcut(ks);
+            connect(a, &QAction::triggered, this, [this, i]()
+            {
+                if (lastPropPane)
+                {
+                    lastPropPane->setSubgroup(i);
+                }
+            }, Qt::QueuedConnection);
+            a->setCheckable(true);
+            if (!i)
+            {
+                a->setChecked(true);
+                initialPreset = a;
+            }
+            presetsGroup->addAction(a);
+        }
+    }
 }
 
 void MainWindow::on_actionSettings_triggered()

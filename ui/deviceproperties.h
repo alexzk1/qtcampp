@@ -51,6 +51,7 @@ public slots:
     void reapplyAll(); //forces settings upload into device (all of them)
     void tryReconnectOnError(); //videostream reader must call that in case of error to test if device can be reconnected
     void updateControls(); //updates controls (active / not) according to current device readings
+    void setSubgroup(int id);
 };
 
 #endif // DEVICEPROPERTIES_H

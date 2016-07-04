@@ -9,6 +9,7 @@
 #include <memory>
 #include <QTimer>
 #include <atomic>
+#include <QActionGroup>
 
 #include "saveable_widget.h"
 #include "deviceproperties.h"
@@ -60,7 +61,8 @@ private:
     ppm_p6_buffer frame;
     QPointer<QTimer> checkTimer;
     std::atomic<bool> doASnap;
-
+    QPointer<QActionGroup> presetsGroup;
+    QPointer<QAction> initialPreset;
     void saveSnapshoot(const QPixmap& pxm);
 
     void relistIfLost();
@@ -73,6 +75,8 @@ private:
     void launchVideoCap();
     void stopVideoCap();
     void camera_input(__u32 w, __u32 h, const uint8_t* mem, size_t size,  int64_t ms_per_frame);
+
+    void buildGuiParts();
 };
 
 #endif // MAINWINDOW_H
