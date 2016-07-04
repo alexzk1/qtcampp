@@ -307,7 +307,7 @@ void MainWindow::buildGuiParts()
             {
                 if (lastPropPane)
                 {
-                    lastPropPane->setSubgroup(i);
+                    lastPropPane->setSubgroup(i - 1);
                 }
             }, Qt::QueuedConnection);
             a->setCheckable(true);

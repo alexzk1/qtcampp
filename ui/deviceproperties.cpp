@@ -29,6 +29,12 @@ DeviceProperties::DeviceProperties(const v4l2device::device_info device, QWidget
         lbl->setText(device.devname.c_str());
         lbl->setAlignment(Qt::AlignHCenter);
         layout->addWidget(lbl);
+
+        presetLbl = new QLabel();
+        presetLbl->setAlignment(Qt::AlignHCenter);
+        layout->addWidget(presetLbl);
+        setSubgroup(0);
+
         setPol(lbl);
         setLayout(layout);
         listControls();
@@ -41,7 +47,7 @@ QWidget* DeviceProperties::connectGUI(const DeviceProperties::widgetted_pt &ptr)
     QWidget* w = nullptr;
     if (ptr)
     {
-        ptr->setNewGroup(settings_group);
+        ptr->setNewGroup(settings_group); //assigning to widget main group as device name
         ptr->reload();
         w = ptr->createWidget();
         setPol(w);
@@ -293,6 +299,10 @@ void DeviceProperties::updateControls()
 
 void DeviceProperties::setSubgroup(int id)
 {
+
+    if (presetLbl)
+        presetLbl->setText(tr("Preset: %1").arg(id + 1));
+
     for (auto & v : holder)
         v.second->switchSubgroup(id);
 }

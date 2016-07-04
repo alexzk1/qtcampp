@@ -5,6 +5,7 @@
 #include <QObject>
 #include <QWidget>
 #include <QString>
+#include <QLabel>
 #include <vector>
 #include <map>
 
@@ -28,6 +29,7 @@ protected:
     controls_t controls;
 private:
     const QString settings_group;
+    QPointer<QLabel> presetLbl;
     void controlValueChanged(const widgetted_pt& p, const v4l2_query_ext_ctrl& c);
     void listControls();
     void listFormats();
