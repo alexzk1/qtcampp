@@ -29,10 +29,14 @@ namespace nmsp_gs
         //subgroups work as follows:
         //when it switched it tries to read value, if absent - uses current state as default which if absent defaults to default
         //i.e. implicit copy of the prev state used (prev. subgroup)
+
         QSettings s;
         openGroup(s);
         bool currentExists = s.contains(key());
         closeGroup(s);
+
+        if (currentExists)
+            flush(); //saving current, bcs atomics could be cached!!
 
         QVariant defValue = (currentExists)?static_cast<QVariant>(*this):getDefault();
         currSubgroup = id;

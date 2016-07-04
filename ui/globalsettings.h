@@ -156,7 +156,7 @@ public:
     }
     virtual void switchSubgroup(int id) = 0;
     virtual void exec(){} //maybe called by the program elsewhere, for example for folder selector it must pop folder selector dialog
-    virtual void valueSet() = 0; //should update GUI, called when value was modified outside user interaction by direct setter
+    virtual void needUpdateWidget() = 0; //should update GUI, called when value was modified outside user interaction by direct setter
     virtual void setNewGroup(const QString& group) = 0; //sets new settings' group
     virtual void reload() = 0; //should be called if group changed (and nothing to save yet), because real loading is done by ctor before group change happened
     virtual void setDefault() = 0;
@@ -184,14 +184,14 @@ public:
     {
         state = s;
         emit valueChanged();
-        valueSet();
+        needUpdateWidget();
     }
 
     virtual void switchSubgroup(int id) override final
     {
         state.switchSubgroup(id);
         emit valueChanged();
-        valueSet();
+        needUpdateWidget();
     }
 
     operator T() const
@@ -218,14 +218,14 @@ public:
     {
         state.reload();
         emit valueChanged();
-        valueSet();
+        needUpdateWidget();
     }
 
     virtual void setDefault() override
     {
         state.setDefaultValue();
         emit valueChanged();
-        valueSet();
+        needUpdateWidget();
     }
 };
 
@@ -376,10 +376,14 @@ private:
         return cb;
     }
 public:
-    virtual void valueSet() override
+    virtual void needUpdateWidget() override
     {
         if (cb)
+        {
+            cb->blockSignals(true);
             cb->setChecked(getValue());
+            cb->blockSignals(false);
+        }
     }
     STORABLE_CONSTRUCTOR2(GlobalStorableBool)
     {
@@ -411,10 +415,14 @@ private:
         return createLabeledField(field);
     }
 public:
-    virtual void valueSet() override
+    virtual void needUpdateWidget() override
     {
         if (field)
+        {
+            field->blockSignals(true);
             field->setValue(getValue() / step);
+            field->blockSignals(false);
+        }
     }
     GlobalStorableInt() = delete;
     GlobalStorableInt(const QString& key, const ValueType& def, const QString& text, const QString& hint, ValueType min, ValueType max, ValueType step = 1):
@@ -450,7 +458,7 @@ private:
         return createLabeledField(f, 80, 20);
     }
 public:
-    virtual void valueSet() override
+    virtual void needUpdateWidget() override
     {
         if (txt)
             txt->setText(getValue());
@@ -464,7 +472,7 @@ public:
         if (ret)
         {
             set(dir);
-            valueSet();
+            needUpdateWidget();
         }
     }
 
@@ -531,10 +539,14 @@ protected:
         return createLabeledField(cb);
     }
 
-    virtual void valueSet() override
+    virtual void needUpdateWidget() override
     {
         if (cb)
+        {
+            cb->blockSignals(true);
             cb->setCurrentIndex(getStoredSelection());
+            cb->blockSignals(false);
+        }
     }
 public:
 

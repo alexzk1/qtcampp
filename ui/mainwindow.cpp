@@ -298,9 +298,9 @@ void MainWindow::buildGuiParts()
 {
     if (presetsGroup)
     {
-        for (int i = 0 ; i < 10; ++i)
+        for (int i = 1 ; i < 11; ++i)
         {
-            QString ks = QString("alt+%1").arg(i);
+            QString ks = QString("alt+%1").arg(i % 10);
             auto a = ui->menuSettings->addAction(tr("Camera Preset %1").arg(i));
             a->setShortcut(ks);
             connect(a, &QAction::triggered, this, [this, i]()
@@ -311,7 +311,7 @@ void MainWindow::buildGuiParts()
                 }
             }, Qt::QueuedConnection);
             a->setCheckable(true);
-            if (!i)
+            if (i == 1)
             {
                 a->setChecked(true);
                 initialPreset = a;
