@@ -8,5 +8,6 @@
         <file alias="camon">icons/Status-tray-online-icon.png</file>
         <file>icons/Settings-2-icon.png</file>
         <file>icons/Image-capture-icon.png</file>
+        <file>icons/photo_icon.png</file>
     </qresource>
 </RCC>

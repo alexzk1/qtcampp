@@ -21,7 +21,7 @@ const StaticSettingsMap &StaticSettingsMap::getGlobalSetts()
                                             tr("Sets amount of memory buffers used. More is better for bigger resolutions but consumes RAM.\n"
                                             "This value is optional for the driver and may be adjusted as needed automatically.\n"
                                             "You must restart capture (or device) to take effect."),
-                                            3, 30),
+                                            3, 240),
                                             DECL_SETT(GlobalStorableBool, "PereodicDeviceTestPresence", true, tr("Check Device Pereodically"),
                                             tr("If enabled will test last used device presense pereodically and restart capture if device reconnected.")),
 
@@ -45,6 +45,10 @@ const StaticSettingsMap &StaticSettingsMap::getGlobalSetts()
                                                     "JPEG Compressed",
                                                 }; //related is MainWindow::saveSnapshoot
                                             }),
+                                            DECL_SETT(GlobalStorableInt, "Wp0SeriesLen", 30, tr("Amount of shoots in series."),
+                                            tr("Defines length of sequentally stored frames on single button press.\n"
+                                            "On fastest CPUs/SSDs it is limited by FPS (i.e. 30FPS will give 30 different shoots at most).\n"
+                                            "On slower CPUs/HDDs you may need to increase buffers' amount."), 2, 3000),
                                         });
     return list;
 }

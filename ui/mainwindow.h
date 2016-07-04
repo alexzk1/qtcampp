@@ -28,6 +28,7 @@ public:
     ~MainWindow();
 
     static qint64 getNextFileId();
+    static qint64 getNextSeriesId();
 protected:
     QPointer<DeviceProperties> lastPropPane;
 
@@ -50,6 +51,8 @@ private slots:
 
     void on_actionSingleShoot_triggered();
 
+    void on_actionSeries_Shoot_triggered();
+
 signals:
     void hasFrame(QPixmap pix, int64_t ms_per_frame); //used to resolve cross thread from puller to GUI
 private:
@@ -61,9 +64,10 @@ private:
     ppm_p6_buffer frame;
     QPointer<QTimer> checkTimer;
     std::atomic<bool> doASnap;
+    std::atomic<bool> doASeries;
     QPointer<QActionGroup> presetsGroup;
     QPointer<QAction> initialPreset;
-    void saveSnapshoot(const QPixmap& pxm);
+    void saveSnapshoot(const QPixmap& pxm, qint64 series);
 
     void relistIfLost();
     void forceRelist();

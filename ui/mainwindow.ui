@@ -75,6 +75,7 @@
     <addaction name="actionReset"/>
     <addaction name="separator"/>
     <addaction name="actionSingleShoot"/>
+    <addaction name="actionSeries_Shoot"/>
    </widget>
    <widget class="QMenu" name="menuSettings">
     <property name="title">
@@ -110,7 +111,9 @@
    <addaction name="actionReset"/>
    <addaction name="separator"/>
    <addaction name="actionSettings"/>
+   <addaction name="separator"/>
    <addaction name="actionSingleShoot"/>
+   <addaction name="actionSeries_Shoot"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionSelect_Camera">
@@ -222,7 +225,7 @@
   <action name="actionSingleShoot">
    <property name="icon">
     <iconset resource="../resources.qrc">
-     <normaloff>:/icons/icons/Image-capture-icon.png</normaloff>:/icons/icons/Image-capture-icon.png</iconset>
+     <normaloff>:/icons/icons/photo_icon.png</normaloff>:/icons/icons/photo_icon.png</iconset>
    </property>
    <property name="text">
     <string>S&amp;ingle Shoot</string>
@@ -232,6 +235,24 @@
    </property>
    <property name="shortcut">
     <string>Shift+Return</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
+   </property>
+  </action>
+  <action name="actionSeries_Shoot">
+   <property name="icon">
+    <iconset resource="../resources.qrc">
+     <normaloff>:/icons/icons/Image-capture-icon.png</normaloff>:/icons/icons/Image-capture-icon.png</iconset>
+   </property>
+   <property name="text">
+    <string>Series Shoot</string>
+   </property>
+   <property name="toolTip">
+    <string>Saves couple sequental frames according to settings.</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Return</string>
    </property>
    <property name="shortcutContext">
     <enum>Qt::ApplicationShortcut</enum>

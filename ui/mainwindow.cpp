@@ -21,6 +21,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow),
     checkTimer(new QTimer(this)),
     doASnap(false),
+    doASeries(false),
     presetsGroup(new QActionGroup(this)),
     initialPreset(nullptr)
 {
@@ -47,9 +48,33 @@ MainWindow::MainWindow(QWidget *parent) :
             avr += ms;
         ++counter;
         ui->videoOut->setPixmap(pix);
+
+        static int seriesLimit = 0;
+        static int seriesCount = 0;
+
+        if (doASeries)
+        {
+            doASnap = false;
+            if (ui->actionSeries_Shoot->isEnabled())
+            {
+                ui->actionSeries_Shoot->setEnabled(false);
+                seriesCount = 0;
+                seriesLimit = StaticSettingsMap::getGlobalSetts().readInt("Wp0SeriesLen");
+            }
+            if (seriesCount++ < seriesLimit)
+            {
+                saveSnapshoot(pix, seriesCount);
+            }
+            else
+            {
+                doASeries = false;
+                ui->actionSeries_Shoot->setEnabled(true);
+            }
+        }
+
         if (doASnap)
         {
-            saveSnapshoot(pix);
+            saveSnapshoot(pix, -1);
             doASnap = false;
         }
 
@@ -161,7 +186,7 @@ void MainWindow::createStatusBar()
     showFps(0);
 }
 
-void MainWindow::saveSnapshoot(const QPixmap &pxm)
+void MainWindow::saveSnapshoot(const QPixmap &pxm, qint64 series)
 {
     const static std::string formats[]
     {
@@ -177,13 +202,22 @@ void MainWindow::saveSnapshoot(const QPixmap &pxm)
     QString folder; //for thread-safety will do it here
     StaticSettingsMap::getGlobalSetts().readValue<QString, false>("WorkingFolder", folder);
 
+    QString fi;
     auto next = getNextFileId();
 
-    auto executor = [this, index, folder, next, pxm]()
+    if (series > -1)
+    {
+        fi = QString("ser_%0_%1.%2").arg(series,4,10,QChar('0')).arg(next,8,10,QChar('0')).arg(formats[index].c_str());
+    }
+    else
+       fi = QString("%1.%2").arg(next,8,10,QChar('0')).arg(formats[index].c_str());
+
+
+    auto executor = [this, index, folder, fi, pxm]()
     {
         QString path= folder +"/" +dateDir;
         QDir dir;dir.mkpath(path);
-        auto fn = QString("%1/%2.%3").arg(path).arg(next,8,10,QChar('0')).arg(formats[index].c_str());
+        auto fn = QString("%1/%2").arg(path).arg(fi);
         pxm.save(fn, formats[index].c_str());
     };
 
@@ -194,6 +228,15 @@ void MainWindow::saveSnapshoot(const QPixmap &pxm)
 qint64 MainWindow::getNextFileId()
 {
     static GlobSaveableTempl<qint64, true> fileNamer("FileNamerCounter", 0);
+    qint64 next = fileNamer.getCachedValue();
+    fileNamer.setCachedValue(next + 1);
+    fileNamer.flush(); //important counter, don't want to loose on crash
+    return next;
+}
+
+qint64 MainWindow::getNextSeriesId()
+{
+    static GlobSaveableTempl<qint64, true> fileNamer("SeriesFileNamerCounter", 0);
     qint64 next = fileNamer.getCachedValue();
     fileNamer.setCachedValue(next + 1);
     fileNamer.flush(); //important counter, don't want to loose on crash
@@ -348,4 +391,9 @@ void MainWindow::on_actionNight_Mode_triggered(bool checked)
 void MainWindow::on_actionSingleShoot_triggered()
 {
     doASnap = true;
+}
+
+void MainWindow::on_actionSeries_Shoot_triggered()
+{
+    doASeries = true;
 }
