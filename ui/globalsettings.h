@@ -32,68 +32,48 @@
 
 namespace nmsp_gs
 {
-    class GlobalStorage;
-
     class SaveableToStorage
     {
-        friend class GlobalStorage;
     private:
+        friend class GlobalStorage;
         const QString  key_m;
         const QVariant default_m;
+        int   currSubgroup;
+
+        void openGroup(QSettings& s) const;
+        void closeGroup(QSettings& s) const;
+
     protected:
         QString group;
 
         virtual QVariant valueAsVariant() const = 0 ;
         virtual void     setVariantValue(const QVariant& value) = 0;
 
+        void    switchSubgroup(int id);
 
-        const QString& key() const
-        {
-            return key_m;
-        }
-
-        virtual QVariant getDefault()
-        {
-            return default_m;
-        }
+        const   QString& key() const;
+        virtual QVariant getDefault();
 
         SaveableToStorage() = delete;
         SaveableToStorage(const SaveableToStorage&) = delete;
         explicit SaveableToStorage(const QString& key, const QVariant& def, const QString& group);
 
+        void load();
     public:
 
         void flush(); //forcing save
         virtual void reload() = 0;//because child is template, so it will have to have own reload
-        virtual void setDefault() = 0;
+        virtual void setDefaultValue() = 0;
 
         virtual ~SaveableToStorage();
-        explicit operator QVariant() const
-        {
-            return valueAsVariant();
-        }
+        explicit operator QVariant() const;
         void setGroup(const QString &value);
+
+        const static QString defaultGroup;
     };
 
     using SavablePtr = std::shared_ptr<SaveableToStorage>;
-
-    class GlobalStorage :protected ItCanBeOnlyOne<GlobalStorage>
-    {
-    public:
-        static const QString defaultGroup;
-
-        GlobalStorage();
-        void save(const SaveableToStorage& value, const QString& group = defaultGroup) const;
-        void save(const SavablePtr& value, const QString& group = defaultGroup) const;
-
-
-        void load(SaveableToStorage& value, const QString& group = defaultGroup) const;
-        void load(SavablePtr& value, const QString& group = defaultGroup) const;
-        virtual ~GlobalStorage();
-    };
 }
-
-#define GLOBAL_STORAGE globalInstanceConst<nmsp_gs::GlobalStorage>()
 
 //templated savable object, you just set value and it kept in settings, automatically casts to template-type like bool
 //this is supposed to be in-memory setting value which will be saved by the destructor
@@ -110,13 +90,13 @@ protected:
     }
 
 public:
-    explicit GlobSaveableTempl(const QString& key, const QString& group = nmsp_gs::GlobalStorage::defaultGroup):
+    explicit GlobSaveableTempl(const QString& key, const QString& group = defaultGroup):
         nmsp_gs::SaveableToStorage(key, QVariant(), group)
     {
         reload();
     }
 
-    explicit GlobSaveableTempl(const QString& key, const T& def, const QString& group = nmsp_gs::GlobalStorage::defaultGroup):
+    explicit GlobSaveableTempl(const QString& key, const T& def, const QString& group = defaultGroup):
         nmsp_gs::SaveableToStorage(key, qVariantFromValue(def), group)
     {
         reload();
@@ -154,10 +134,10 @@ public:
     }
     virtual void reload() override
     {
-        GLOBAL_STORAGE.load(*this, group);
+        load();
     }
 
-    virtual void setDefault() override
+    virtual void setDefaultValue() override
     {
         setVariantValue(getDefault());
     }
@@ -202,7 +182,7 @@ public:
     using      ValueType = T;
 
     SaveableWidgetTempl() = delete;
-    SaveableWidgetTempl(const QString& key, T def, const QString& group = nmsp_gs::GlobalStorage::defaultGroup):
+    SaveableWidgetTempl(const QString& key, T def, const QString& group = nmsp_gs::SaveableToStorage::defaultGroup):
         state(key, def, group){}
 
     virtual void set(const T& s)
@@ -241,7 +221,7 @@ public:
 
     virtual void setDefault() override
     {
-        state.setDefault();
+        state.setDefaultValue();
         emit valueChanged();
         valueSet();
     }

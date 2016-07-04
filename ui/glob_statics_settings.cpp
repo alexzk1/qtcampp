@@ -38,6 +38,7 @@ const StaticSettingsMap &StaticSettingsMap::getGlobalSetts()
                                             DECL_SETT(GlobalComboBoxStorable, "Wp0SingleShotFormat", 0, tr("Single Short Saving Format"),
                                             tr("Sets format used to output single captured frame."),[](QStringList& s, QVariantList& v)
                                             {
+                                                Q_UNUSED(v);
                                                 s = QStringList{
                                                     "PNG compressed",
                                                     "Portatable Pixmap (PPM)",

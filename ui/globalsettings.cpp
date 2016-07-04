@@ -3,56 +3,8 @@
 
 namespace nmsp_gs
 {
-    const QString GlobalStorage::defaultGroup = "GlobalValues";
-
-    GlobalStorage::GlobalStorage()
-    {
-
-    }
-
-    void GlobalStorage::save(const SaveableToStorage &value, const QString& group) const
-    {
-        QSettings s; //local copy so it will be thread safe
-        s.beginGroup(group);
-        s.setValue(value.key(), static_cast<QVariant>(value));
-        s.endGroup();
-        s.sync();
-    }
-
-    void GlobalStorage::save(const SavablePtr &value, const QString &group) const
-    {
-        if (value)
-        {
-            QSettings s; //local copy so it will be thread safe
-            s.beginGroup(group);
-            s.setValue(value->key(), static_cast<QVariant>(*value));
-            s.endGroup();
-            s.sync();
-        }
-    }
-
-    void GlobalStorage::load(SaveableToStorage &value, const QString &group) const
-    {
-        QSettings s; //local copy so it will be thread safe
-        s.beginGroup(group);
-        value.setVariantValue(s.value(value.key(), value.getDefault()));
-        s.endGroup();
-    }
-
-    void GlobalStorage::load(SavablePtr &value, const QString &group) const
-    {
-        if (value)
-        {
-            QSettings s; //local copy so it will be thread safe
-            s.beginGroup(group);
-            value->setVariantValue(s.value(value->key(), value->getDefault()));
-            s.endGroup();
-        }
-    }
-
-    GlobalStorage::~GlobalStorage()
-    {
-    }
+    const QString SaveableToStorage::defaultGroup = "GlobalValues";
+    //more changes I do - less sence has this "GlobalStorage"
 
 
     void SaveableToStorage::setGroup(const QString &value)
@@ -61,21 +13,69 @@ namespace nmsp_gs
         //fixme: not sure if we should call reload from here..but what if group changed before save...
     }
 
+    void SaveableToStorage::openGroup(QSettings &s) const
+    {
+        s.beginGroup(group);
+        s.beginGroup(QString("sub_%1").arg(currSubgroup));
+
+    }
+
+    void SaveableToStorage::closeGroup(QSettings &s) const
+    {
+        s.endGroup();
+        s.endGroup();
+    }
+
+    void SaveableToStorage::switchSubgroup(int id)
+    {
+        //subgroups work as follows:
+        //when it switched it tries to read value, if absent - uses current state as default which if absent defaults to default
+        currSubgroup = id;
+    }
+
+    const QString &SaveableToStorage::key() const
+    {
+        return key_m;
+    }
+
+    QVariant SaveableToStorage::getDefault()
+    {
+        return default_m;
+    }
+
     SaveableToStorage::SaveableToStorage(const QString &key, const QVariant &def, const QString &group):
         key_m(key),
         default_m(def),
+        currSubgroup(0),
         group(group)
     {
 
     }
 
+    void SaveableToStorage::load()
+    {
+        QSettings s; //local copy so it will be thread safe
+        openGroup(s);
+        setVariantValue(s.value(key(), getDefault()));
+        closeGroup(s);
+    }
+
     void SaveableToStorage::flush()
     {
-        GLOBAL_STORAGE.save(*this, group);
+        QSettings s; //local copy so it will be thread safe
+        openGroup(s);
+        s.setValue(key(), static_cast<QVariant>(*this));
+        closeGroup(s);
+        s.sync();
     }
 
     SaveableToStorage::~SaveableToStorage()
     {
+    }
+
+    nmsp_gs::SaveableToStorage::operator QVariant() const
+    {
+        return valueAsVariant();
     }
 }
 //-----------------------------------------------------------------------------------------------------------------------

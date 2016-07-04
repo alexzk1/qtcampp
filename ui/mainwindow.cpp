@@ -293,6 +293,7 @@ void MainWindow::on_actionSettings_triggered()
 
 void MainWindow::on_actionFullscreen_triggered(bool checked)
 {
+    Q_UNUSED(checked);
     setWindowState(windowState() ^ Qt::WindowFullScreen);
 }
 
