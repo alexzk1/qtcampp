@@ -42,7 +42,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>140</width>
+          <width>75</width>
           <height>451</height>
          </rect>
         </property>
@@ -80,8 +80,15 @@
     </property>
     <addaction name="actionSettings"/>
    </widget>
+   <widget class="QMenu" name="menuWindow">
+    <property name="title">
+     <string>Window</string>
+    </property>
+    <addaction name="actionFullscreen"/>
+   </widget>
    <addaction name="menuCamera"/>
    <addaction name="menuSettings"/>
+   <addaction name="menuWindow"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <property name="toolButtonStyle">
@@ -174,6 +181,20 @@
    </property>
    <property name="shortcut">
     <string>Alt+S</string>
+   </property>
+  </action>
+  <action name="actionFullscreen">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Fullscreen</string>
+   </property>
+   <property name="toolTip">
+    <string>Resize window to take full screen</string>
+   </property>
+   <property name="shortcut">
+    <string>F11</string>
    </property>
   </action>
  </widget>

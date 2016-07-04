@@ -1,5 +1,6 @@
 //License: MIT, (c) Oleksiy Zakharov, 2016, alexzkhr@gmail.com
 #include <QApplication>
+#include <QDesktopWidget>
 #include <QVBoxLayout>
 #include <QPixmap>
 
@@ -46,6 +47,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     relistIfLost();
     pereodicTestRunStop();
+
 }
 
 MainWindow::~MainWindow()
@@ -234,4 +236,9 @@ void MainWindow::on_actionSettings_triggered()
     //reapplying settings
     forceRelist();
     pereodicTestRunStop();
+}
+
+void MainWindow::on_actionFullscreen_triggered(bool checked)
+{
+    setWindowState(windowState() ^ Qt::WindowFullScreen);
 }

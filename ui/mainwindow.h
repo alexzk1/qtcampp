@@ -41,6 +41,8 @@ private slots:
     void device_lost();
     void device_back();
     void on_actionSettings_triggered();
+    void on_actionFullscreen_triggered(bool checked);
+
 signals:
     void hasFrame(QPixmap pix, int64_t ms_per_frame); //used to resolve cross thread from puller to GUI
 private:
