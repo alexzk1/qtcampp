@@ -43,6 +43,8 @@ private slots:
     void on_actionSettings_triggered();
     void on_actionFullscreen_triggered(bool checked);
 
+    void on_actionNight_Mode_triggered(bool checked);
+
 signals:
     void hasFrame(QPixmap pix, int64_t ms_per_frame); //used to resolve cross thread from puller to GUI
 private:

@@ -9,6 +9,8 @@
 #include "selectdevicedialog.h"
 #include "settingsdialog.h"
 
+static const QString nightScheme = "QWidget {background-color: #660000;}";
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     lastPropPane(nullptr),
@@ -241,4 +243,12 @@ void MainWindow::on_actionSettings_triggered()
 void MainWindow::on_actionFullscreen_triggered(bool checked)
 {
     setWindowState(windowState() ^ Qt::WindowFullScreen);
+}
+
+void MainWindow::on_actionNight_Mode_triggered(bool checked)
+{
+    if (checked)
+        qApp->setStyleSheet(nightScheme);
+    else
+        qApp->setStyleSheet("");
 }

@@ -85,6 +85,7 @@
      <string>Window</string>
     </property>
     <addaction name="actionFullscreen"/>
+    <addaction name="actionNight_Mode"/>
    </widget>
    <addaction name="menuCamera"/>
    <addaction name="menuSettings"/>
@@ -195,6 +196,23 @@
    </property>
    <property name="shortcut">
     <string>F11</string>
+   </property>
+  </action>
+  <action name="actionNight_Mode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Night Mode</string>
+   </property>
+   <property name="toolTip">
+    <string>Eyes saving mode for darkness.</string>
+   </property>
+   <property name="shortcut">
+    <string>F12</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
    </property>
   </action>
  </widget>
