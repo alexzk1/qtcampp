@@ -49,22 +49,23 @@ MainWindow::MainWindow(QWidget *parent) :
         ++counter;
         ui->videoOut->setPixmap(pix);
 
-        static int seriesLimit = 0;
-        static int seriesCount = 0;
+        static int    seriesLimit = 0;
+        static int    seriesCount = 0;
+        static qint64 seriesID = -1;
 
         if (doASeries)
         {
             doASnap = false;
             if (ui->actionSeries_Shoot->isEnabled())
             {
+                seriesID = getNextSeriesId();
                 ui->actionSeries_Shoot->setEnabled(false);
                 seriesCount = 0;
                 seriesLimit = StaticSettingsMap::getGlobalSetts().readInt("Wp0SeriesLen");
             }
+
             if (seriesCount++ < seriesLimit)
-            {
-                saveSnapshoot(pix, seriesCount);
-            }
+                saveSnapshoot(pix, seriesID);
             else
             {
                 doASeries = false;
