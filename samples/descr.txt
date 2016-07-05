@@ -1,0 +1,8 @@
+2nd try to use this software.
+
+Captured 25 frames and stacked using RegiStax.
+
+Camera is cheap 0.3Mpx webcam, tele is 114/500 newton, direct focus, 
+dobson.
+
+CPU used to get it is Atom N470 (HP-100 mini, arch linux).
