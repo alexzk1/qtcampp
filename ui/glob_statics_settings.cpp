@@ -49,6 +49,10 @@ const StaticSettingsMap &StaticSettingsMap::getGlobalSetts()
                                             tr("Defines length of sequentally stored frames on single button press.\n"
                                             "On fastest CPUs/SSDs it is limited by FPS (i.e. 30FPS will give 30 different shoots at most).\n"
                                             "On slower CPUs/HDDs you may need to increase buffers' amount."), 2, 3000),
+
+                                            DECL_SETT(GlobalStorableBool, "UseColorCoeff", false, tr("Apply custom R-G-B coefficeints."),
+                                            tr("If enabled it will multiply R-G-B by coefficients found in REGISTAX to align luminance of the sky objects.\n"
+                                            "Affects only custom YUYV conversion.")),
                                         });
     return list;
 }

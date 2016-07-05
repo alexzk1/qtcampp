@@ -28,11 +28,12 @@ const static uint64_t deviceTestEachNLoops = 1000; //not too often check if we d
 #include "ui/globalsettings.h"
 #define BUFFERS_AMOUNT (StaticSettingsMap::getGlobalSetts().readInt("VideoBuffs"))
 #define CUSTOM_YUVY (StaticSettingsMap::getGlobalSetts().readBool("CustomYUYV"))
+#define RGB_COEF (StaticSettingsMap::getGlobalSetts().readBool("UseColorCoeff"))
 #else
 //standalone, stl solution, maybe used elsewhere
 #define BUFFERS_AMOUNT 10
 #define CUSTOM_YUVY false
-
+#define RGB_COEF false
 #endif
 
 #define FATAL_RISE(TEXT) throw v4l2device::v4l2device_excp(std::string(TEXT)+"\n\tat "+std::string(__FILE__)+": "+std::to_string(__LINE__))
@@ -307,7 +308,9 @@ bool v4l2device::cameraInput(const frame_receiver& receiver, __u32 pixelFormatRe
             uint64_t loopCounter = 0;
             auto  start = std::chrono::steady_clock::now();
 
-            bool useCustomConversion = CUSTOM_YUVY;
+            bool useCustomConversion  = CUSTOM_YUVY;
+            bool luminicityCorrection = RGB_COEF;
+
             while (interruptor)
             {
 
@@ -382,9 +385,16 @@ bool v4l2device::cameraInput(const frame_receiver& receiver, __u32 pixelFormatRe
                                 double r;
                                 double g;
                                 double b;
-                                auto color_correction = [&r, &g, &b]()
+                                auto color_correction = [&r, &g, &b, &luminicityCorrection]()
                                 {
                                     //This prevents colour distortions in your rgb image
+                                    if (luminicityCorrection)
+                                    {
+                                        r *= 0.299;
+                                        g *= 0.587;
+                                        b *= 0.114;
+                                    }
+
                                     if (r < 0) r = 0;
                                     else if (r > 255) r = 255;
                                     if (g < 0) g = 0;
@@ -407,9 +417,9 @@ bool v4l2device::cameraInput(const frame_receiver& receiver, __u32 pixelFormatRe
                                     b = y + (1.7790 * (cb - 128));
                                     color_correction();
 
-                                    destBuffer[i]   = static_cast<uint8_t>(r);
-                                    destBuffer[i+1] = static_cast<uint8_t>(g);
-                                    destBuffer[i+2] = static_cast<uint8_t>(b);
+                                    destBuffer[i + 0]   = static_cast<uint8_t>(r);
+                                    destBuffer[i + 1] = static_cast<uint8_t>(g);
+                                    destBuffer[i + 2] = static_cast<uint8_t>(b);
 
                                     //second pixel
                                     y =  buf->memory[j+2];
@@ -422,9 +432,9 @@ bool v4l2device::cameraInput(const frame_receiver& receiver, __u32 pixelFormatRe
                                     b = y + (1.7790 * (cb - 128));
                                     color_correction();
 
-                                    destBuffer[i+3] = static_cast<uint8_t>(r);
-                                    destBuffer[i+4] = static_cast<uint8_t>(g);
-                                    destBuffer[i+5] = static_cast<uint8_t>(b);
+                                    destBuffer[i + 3] = static_cast<uint8_t>(r);
+                                    destBuffer[i + 4] = static_cast<uint8_t>(g);
+                                    destBuffer[i + 5] = static_cast<uint8_t>(b);
                                 }
                             }
                             if (size > -1)
@@ -499,9 +509,9 @@ int v4l2device::setSourcePixelFormat(__u32 frm, __u32 type)
     int r = EBUSY;
     for(int i =0; i < 30 && r == EBUSY; ++i)
     {
-          r = set_fmt_cap(src);
-          if (r == EBUSY)
-             std::this_thread::sleep_for(std::chrono::duration<int, std::milli>(10));
+        r = set_fmt_cap(src);
+        if (r == EBUSY)
+            std::this_thread::sleep_for(std::chrono::duration<int, std::milli>(10));
     }
     pixelFormatChanged = r > -1;
     return r;
