@@ -311,6 +311,26 @@ bool v4l2device::cameraInput(const frame_receiver& receiver, __u32 pixelFormatRe
             bool useCustomConversion  = CUSTOM_YUVY;
             bool luminicityCorrection = RGB_COEF;
 
+            //device maybe busy, especially at the startup + i7 cpu, so need to wait some if driver says so
+            //not really sure what will happen if cable will be disconnected exatly inside loop
+            auto busy_wait = [this](__u32 code, v4l2_buffer& cam_buf) ->int
+            {
+                int co = 0;
+                while (interruptor)
+                {
+                    co = ioctl(code, &cam_buf);
+
+                    if (co == -1)
+                        co = errno;
+
+                    if (co == EAGAIN)
+                        std::this_thread::sleep_for(std::chrono::duration<int, std::milli>(10));
+                    else
+                        break;
+                }
+                return co;
+            };
+
             while (interruptor)
             {
 
@@ -327,7 +347,7 @@ bool v4l2device::cameraInput(const frame_receiver& receiver, __u32 pixelFormatRe
                         {
                             pixelFormatChanged = false;
                             for (auto& b : buffers) //enqueue all buffers
-                                ioctl(VIDIOC_QBUF, &b->buf);
+                                busy_wait(VIDIOC_QBUF, b->buf);
                             cam_buf.type   = buffers.at(0)->buf.type;
                             cam_buf.memory = buffers.at(0)->buf.memory;
 
@@ -350,28 +370,8 @@ bool v4l2device::cameraInput(const frame_receiver& receiver, __u32 pixelFormatRe
 
                 if (!lostDevice)
                 {
-                    //device maybe busy, especially at the startup + i7 cpu, so need to wait some if driver says so
-                    //not really sure what will happen if cable will be disconnected exatly inside loop
-                    auto busy_wait = [this, &cam_buf](__u32 code) ->int
-                    {
-                        int co = 0;
-                        while (interruptor)
-                        {
-                            co = ioctl(code, &cam_buf);
 
-                            if (co == -1)
-                                co = errno;
-
-                            if (co == EAGAIN)
-                                std::this_thread::sleep_for(std::chrono::duration<int, std::milli>(10));
-                            else
-                                break;
-                        }
-                        return co;
-                    };
-
-
-                    int code = busy_wait(VIDIOC_DQBUF);
+                    int code = busy_wait(VIDIOC_DQBUF, cam_buf);
                     lostDevice = (code < 0);
 
                     if (!lostDevice && code != EAGAIN)
@@ -467,7 +467,7 @@ bool v4l2device::cameraInput(const frame_receiver& receiver, __u32 pixelFormatRe
                         }
 
                         cam_buf.flags = cam_buf.reserved = 0;
-                        code = busy_wait(VIDIOC_QBUF);
+                        code = busy_wait(VIDIOC_QBUF, cam_buf);
                         lostDevice = (code < 0);
                     }
                 }
