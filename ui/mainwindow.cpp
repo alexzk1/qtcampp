@@ -205,18 +205,16 @@ void MainWindow::saveSnapshoot(const QPixmap &pxm, qint64 series)
 
     QString fi;
     auto next = getNextFileId();
-
-    if (series > -1)
-    {
-        fi = QString("ser_%0_%1.%2").arg(series,4,10,QChar('0')).arg(next,8,10,QChar('0')).arg(formats[index].c_str());
-    }
-    else
-       fi = QString("%1.%2").arg(next,8,10,QChar('0')).arg(formats[index].c_str());
+    fi = QString("%1.%2").arg(next,8,10,QChar('0')).arg(formats[index].c_str());
 
 
-    auto executor = [this, index, folder, fi, pxm]()
+    auto executor = [this, index, folder, fi, pxm, series]()
     {
         QString path= folder +"/" +dateDir;
+        if (series > -1)
+        {
+            path = path + QString("/ser_%1").arg(series,4,10,QChar('0'));
+        }
         QDir dir;dir.mkpath(path);
         auto fn = QString("%1/%2").arg(path).arg(fi);
         pxm.save(fn, formats[index].c_str());
