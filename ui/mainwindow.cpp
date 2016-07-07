@@ -13,6 +13,10 @@
 #include "selectdevicedialog.h"
 #include "settingsdialog.h"
 
+#ifdef CAMPP_TOOLS_USED
+#include "tools/onlinestacker.h"
+#endif
+
 static const QString nightScheme = "QWidget {background-color: #660000;}";
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -23,7 +27,9 @@ MainWindow::MainWindow(QWidget *parent) :
     doASnap(false),
     doASeries(false),
     presetsGroup(new QActionGroup(this)),
-    initialPreset(nullptr)
+    initialPreset(nullptr),
+    lastFilterQ(0),
+    stacker()
 {
     ui->setupUi(this);
     readSettings(this);
@@ -332,7 +338,12 @@ void MainWindow::stopVideoCap()
 
 void MainWindow::camera_input(__u32 w, __u32 h, const uint8_t *mem, size_t size, int64_t ms_per_frame)
 {
-    frame.set_data(w, h, mem, size);
+    auto pm = mem;
+#ifdef CAMPP_TOOLS_USED
+    if (lastFilterQ)
+        pm = stacker.addFrame(mem, size).data();
+#endif
+    frame.set_data(w, h, pm, size);
     emit hasFrame(frame.toPixmap(), ms_per_frame);
 }
 
@@ -371,6 +382,12 @@ void MainWindow::on_actionSettings_triggered()
     //reapplying settings
     forceRelist();
     pereodicTestRunStop();
+
+#ifdef CAMPP_TOOLS_USED
+    lastFilterQ = static_cast<size_t>(StaticSettingsMap::getGlobalSetts().readInt("NoiseFilter"));
+    stacker.setFilterQuality(lastFilterQ);
+#endif
+
 }
 
 void MainWindow::on_actionFullscreen_triggered(bool checked)

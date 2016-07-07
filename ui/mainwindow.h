@@ -15,6 +15,10 @@
 #include "deviceproperties.h"
 #include "ppm_p6_buffer.h"
 
+#ifdef CAMPP_TOOLS_USED
+#include "tools/onlinestacker.h"
+#endif
+
 namespace Ui {
     class MainWindow;
 }
@@ -67,6 +71,13 @@ private:
     std::atomic<bool> doASeries;
     QPointer<QActionGroup> presetsGroup;
     QPointer<QAction> initialPreset;
+
+#ifdef CAMPP_TOOLS_USED
+    size_t lastFilterQ;
+    OnlineStacker stacker;
+#endif
+
+
     void saveSnapshoot(const QPixmap& pxm, qint64 series);
 
     void relistIfLost();

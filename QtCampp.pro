@@ -19,6 +19,9 @@ include(./libusb/libusb.pri)
 include(./devicing/devicing.pri)
 include (./ui/ui.pri)
 
+#comment include below to disable opencv filter (all "tools" actually) usage
+include (tools/tools.pri)
+
 TARGET = qtcampp
 TEMPLATE = app
 
