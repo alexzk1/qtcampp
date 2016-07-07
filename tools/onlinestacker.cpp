@@ -21,10 +21,11 @@ const OnlineStacker::RGBVector &OnlineStacker::addFrame(const uint8_t *data, siz
     initBySize(size);
     auto f = images.front();
 
+    auto div = images.size();
     for (size_t i  = 0; i < size; ++i)
     {
         summ[i]     = summ[i] - f->at(i) + *(data + i);
-        outImage[i] = static_cast<uint8_t>(summ[i] / images.size());
+        outImage[i] = static_cast<uint8_t>(summ[i] / div);
     }
 
     memcpy(f->data(), data, size);
