@@ -4,11 +4,12 @@
 #include <vector>
 #include <deque>
 #include <memory>
+#include "live_filter.h"
 
-class OnlineStacker
+class OnlineStacker : public ILiveFilter
 {
 public:
-    using RGBVector     = std::vector<uint8_t>;
+
     using RGBVectorSum  = std::vector<uint32_t>;
     using QueuedElement = RGBVector;
     using RGBQueue      = std::deque<std::shared_ptr<QueuedElement>>;
@@ -21,10 +22,9 @@ private:
 
 public:
     OnlineStacker();
-    const RGBVector &addFrame(const RGBVector& rgb24);
-    const RGBVector &addFrame(const uint8_t *data, size_t size);
-
-    void setFilterQuality(size_t quality); // parameter defines 2x of buffers
+    virtual const RGBVector &addFrame(const uint8_t *data, size_t size, size_t w, size_t h) override final;
+    virtual void setFilterQuality(size_t quality) override final; // parameter defines 2x of buffers
+    virtual void reset();
 };
 
 #endif // ONLINESTUCKER_H

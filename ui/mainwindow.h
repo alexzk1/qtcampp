@@ -77,10 +77,9 @@ private:
     QPointer<QAction> initialPreset;
 
 #ifdef CAMPP_TOOLS_USED
-    size_t lastFilterQ;
-    OnlineStacker stacker;
+    std::vector<std::shared_ptr<ILiveFilter>> filters;
 #endif
-
+    void buildFilters();
 
     void saveSnapshoot(const QPixmap& pxm, qint64 series);
 

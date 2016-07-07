@@ -11,13 +11,11 @@ OnlineStacker::OnlineStacker():
     setFilterQuality(1);
 }
 
-const OnlineStacker::RGBVector & OnlineStacker::addFrame(const OnlineStacker::RGBVector &rgb24)
+const OnlineStacker::RGBVector &OnlineStacker::addFrame(const uint8_t *data, size_t size, size_t w, size_t h)
 {
-    return addFrame(rgb24.data(), rgb24.size());
-}
+    (void)w;
+    (void)h;
 
-const OnlineStacker::RGBVector &OnlineStacker::addFrame(const uint8_t *data, size_t size)
-{
     initBySize(size);
     auto f = images.front();
 
@@ -51,21 +49,25 @@ void OnlineStacker::setFilterQuality(size_t quality)
     }
 }
 
+void OnlineStacker::reset()
+{
+    outImage.clear();
+    summ.clear();
+}
+
 void OnlineStacker::initBySize(size_t size)
 {
-
     if (!images.front() || images.front()->size() != size)
     {
+        reset();
+        outImage.resize(size, 0);
+        summ.resize(size, 0);
+
         for (auto& v: images)
         {
             v = std::make_shared<QueuedElement>();
             v->resize(size, 0);
         }
-        outImage.clear();
-        outImage.resize(size, 0);
-
-        summ.clear();
-        summ.resize(size, 0);
     }
 }
 

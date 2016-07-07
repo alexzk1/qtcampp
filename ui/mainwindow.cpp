@@ -27,9 +27,7 @@ MainWindow::MainWindow(QWidget *parent) :
     doASnap(false),
     doASeries(false),
     presetsGroup(new QActionGroup(this)),
-    initialPreset(nullptr),
-    lastFilterQ(0),
-    stacker()
+    initialPreset(nullptr)
 {
     ui->setupUi(this);
     readSettings(this);
@@ -339,11 +337,11 @@ void MainWindow::stopVideoCap()
 void MainWindow::camera_input(__u32 w, __u32 h, const uint8_t *mem, size_t size, int64_t ms_per_frame)
 {
     auto pm = mem;
-    if (useFilters)
-    {
 #ifdef CAMPP_TOOLS_USED
-        if (lastFilterQ)
-            pm = stacker.addFrame(mem, size).data();
+    if (useFilters && filters.size())
+    {
+        for (auto& f : filters)
+            pm = f->addFrame(pm, size, w, h).data();
 #endif
     }
     frame.set_data(w, h, pm, size);
@@ -377,6 +375,23 @@ void MainWindow::buildGuiParts()
     }
 }
 
+
+void MainWindow::buildFilters()
+{
+#ifdef CAMPP_TOOLS_USED
+    filters.clear();
+    //if position of filters is important - this func must take care of
+    auto q1 = static_cast<size_t>(StaticSettingsMap::getGlobalSetts().readInt("NoiseFilter"));
+    if (q1)
+    {
+        auto f1 = std::make_shared<OnlineStacker>();
+        f1->setFilterQuality(q1);
+        filters.push_back(f1);
+    }
+#endif
+}
+
+
 void MainWindow::on_actionSettings_triggered()
 {
     SettingsDialog d(this);
@@ -386,11 +401,7 @@ void MainWindow::on_actionSettings_triggered()
     forceRelist();
     pereodicTestRunStop();
 
-#ifdef CAMPP_TOOLS_USED
-    lastFilterQ = static_cast<size_t>(StaticSettingsMap::getGlobalSetts().readInt("NoiseFilter"));
-    stacker.setFilterQuality(lastFilterQ);
-#endif
-
+    buildFilters();
 }
 
 void MainWindow::on_actionFullscreen_triggered(bool checked)
@@ -420,4 +431,8 @@ void MainWindow::on_actionSeries_Shoot_triggered()
 void MainWindow::on_actionEnable_Filter_s_triggered(bool checked)
 {
     useFilters = checked;
+#ifdef CAMPP_TOOLS_USED
+    for (auto& f : filters)
+        f->reset();
+#endif
 }
