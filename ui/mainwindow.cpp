@@ -339,10 +339,13 @@ void MainWindow::stopVideoCap()
 void MainWindow::camera_input(__u32 w, __u32 h, const uint8_t *mem, size_t size, int64_t ms_per_frame)
 {
     auto pm = mem;
+    if (useFilters)
+    {
 #ifdef CAMPP_TOOLS_USED
-    if (lastFilterQ)
-        pm = stacker.addFrame(mem, size).data();
+        if (lastFilterQ)
+            pm = stacker.addFrame(mem, size).data();
 #endif
+    }
     frame.set_data(w, h, pm, size);
     emit hasFrame(frame.toPixmap(), ms_per_frame);
 }
@@ -412,4 +415,9 @@ void MainWindow::on_actionSingleShoot_triggered()
 void MainWindow::on_actionSeries_Shoot_triggered()
 {
     doASeries = true;
+}
+
+void MainWindow::on_actionEnable_Filter_s_triggered(bool checked)
+{
+    useFilters = checked;
 }

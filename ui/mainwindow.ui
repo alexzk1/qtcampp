@@ -76,6 +76,8 @@
     <addaction name="separator"/>
     <addaction name="actionSingleShoot"/>
     <addaction name="actionSeries_Shoot"/>
+    <addaction name="separator"/>
+    <addaction name="actionEnable_Filter_s"/>
    </widget>
    <widget class="QMenu" name="menuSettings">
     <property name="title">
@@ -111,6 +113,7 @@
    <addaction name="actionReset"/>
    <addaction name="separator"/>
    <addaction name="actionSettings"/>
+   <addaction name="actionEnable_Filter_s"/>
    <addaction name="separator"/>
    <addaction name="actionSingleShoot"/>
    <addaction name="actionSeries_Shoot"/>
@@ -246,7 +249,7 @@
      <normaloff>:/icons/icons/Image-capture-icon.png</normaloff>:/icons/icons/Image-capture-icon.png</iconset>
    </property>
    <property name="text">
-    <string>Series Shoot</string>
+    <string>S&amp;eries Shoot</string>
    </property>
    <property name="toolTip">
     <string>Saves couple sequental frames according to settings.</string>
@@ -256,6 +259,24 @@
    </property>
    <property name="shortcutContext">
     <enum>Qt::ApplicationShortcut</enum>
+   </property>
+  </action>
+  <action name="actionEnable_Filter_s">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../resources.qrc">
+     <normaloff>:/icons/icons/Very-Basic-Filter-Filled-icon.png</normaloff>:/icons/icons/Very-Basic-Filter-Filled-icon.png</iconset>
+   </property>
+   <property name="text">
+    <string>Enable Filter(s)</string>
+   </property>
+   <property name="toolTip">
+    <string>Applies filter(s), which are activated in settings.</string>
+   </property>
+   <property name="shortcut">
+    <string>F</string>
    </property>
   </action>
  </widget>

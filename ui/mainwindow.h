@@ -57,6 +57,8 @@ private slots:
 
     void on_actionSeries_Shoot_triggered();
 
+    void on_actionEnable_Filter_s_triggered(bool checked);
+
 signals:
     void hasFrame(QPixmap pix, int64_t ms_per_frame); //used to resolve cross thread from puller to GUI
 private:
@@ -69,6 +71,8 @@ private:
     QPointer<QTimer> checkTimer;
     std::atomic<bool> doASnap;
     std::atomic<bool> doASeries;
+    std::atomic<bool> useFilters;
+
     QPointer<QActionGroup> presetsGroup;
     QPointer<QAction> initialPreset;
 
