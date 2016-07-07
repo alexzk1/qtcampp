@@ -323,16 +323,26 @@ protected:
         w->setToolTip(userHint);
     }
 
-    QWidget* createLabeledField(QWidget *field, int fieldStretch = 3, int labelStretch = 97, QWidget* lbl = nullptr)
+    QWidget* createLabeledField(QWidget *field, int fieldStretch = 3, int labelStretch = 92, int defBtnStrech = 5, QWidget* lbl = nullptr, const bool no_def_btn = false)
     {
         auto hoster = new QWidget(nullptr);
         auto hlayout = new QHBoxLayout();
         if (!lbl)
             lbl = new QLabel(userText);
 
-        hlayout->addWidget(field, fieldStretch);
-        hlayout->addWidget(lbl,   labelStretch);
-
+        if (!no_def_btn)
+        {
+            auto button = new QPushButton(nullptr);
+            button->setText(QObject::tr("Def"));
+            button->setToolTip(QObject::tr("Reset this field to default value."));
+            hlayout->addWidget(button, defBtnStrech);
+            QObject::connect(button, &QPushButton::pressed, [this]()
+            {
+                resetToDefButtonPressed();
+            });
+        }
+        hlayout->addWidget(field,  fieldStretch);
+        hlayout->addWidget(lbl,    labelStretch);
         setHint(lbl);
         setHint(field);
 
@@ -340,6 +350,8 @@ protected:
 
         return hoster;
     }
+
+    virtual void resetToDefButtonPressed() = 0;
 };
 
 
@@ -356,9 +368,11 @@ protected:
 
 #define DECL_DESTRUCTOR(NAME) virtual ~NAME()
 
+#define DEF_BTN_IMPL virtual void resetToDefButtonPressed() override final{setDefault();}
+
 STORABLE_ATOMIC_CLASS(GlobalStorableBool, bool)
 {
-private:
+    private:
     QPointer<QCheckBox> cb;
 
     virtual QWidget* createWidget2() override
@@ -375,7 +389,7 @@ private:
 
         return cb;
     }
-public:
+    public:
     virtual void needUpdateWidget() override
     {
         if (cb)
@@ -392,11 +406,12 @@ public:
 
     //need to put ANY virtual function to CPP file, so vtable will not be copied for each object
     DECL_DESTRUCTOR(GlobalStorableBool);
+    DEF_BTN_IMPL
 };
 
 STORABLE_ATOMIC_CLASS(GlobalStorableInt, int)
 {
-private:
+    private:
     QPointer<QSpinBox> field;
     const ValueType min;
     const ValueType max;
@@ -414,7 +429,7 @@ private:
         }, Qt::QueuedConnection);
         return createLabeledField(field);
     }
-public:
+    public:
     virtual void needUpdateWidget() override
     {
         if (field)
@@ -432,11 +447,12 @@ public:
         field = nullptr;
     }
     DECL_DESTRUCTOR(GlobalStorableInt);
+    DEF_BTN_IMPL
 };
 
 STORABLE_CLASS(GlobalFileStorable, QString)
 {
-private:
+    private:
     QPointer<QLineEdit> txt;
     const QString execText;
 
@@ -447,7 +463,7 @@ private:
         auto btn = new QPushButton();
         btn->setText("...");
         txt->setText(getValue());
-        auto f = createLabeledField(txt, 97, 3, btn);
+        auto f = createLabeledField(txt, 97, 3, 5, btn, true);
 
         connect(btn, &QPushButton::clicked, this, [this]()
         {
@@ -457,7 +473,7 @@ private:
 
         return createLabeledField(f, 80, 20);
     }
-public:
+    public:
     virtual void needUpdateWidget() override
     {
         if (txt)
@@ -488,6 +504,7 @@ public:
 
     //need to put ANY virtual function to CPP file, so vtable will not be copied for each object
     DECL_DESTRUCTOR(GlobalFileStorable);
+    DEF_BTN_IMPL
 };
 
 
@@ -496,9 +513,9 @@ public:
 //trivial case it will return static list of choices
 STORABLE_ATOMIC_CLASS(GlobalComboBoxStorable, int)
 {
-public:
+    public:
     using items_supplier_t  = std::function<void (QStringList&, QVariantList &)>;
-private:
+    private:
     const items_supplier_t itemsf;
     QPointer<QComboBox> cb;
 
@@ -513,7 +530,7 @@ private:
         return val;
     }
 
-protected:
+    protected:
     virtual QWidget* createWidget2() override
     {
         cb = new QComboBox();
@@ -548,7 +565,7 @@ protected:
             cb->blockSignals(false);
         }
     }
-public:
+    public:
 
     GlobalComboBoxStorable() = delete;
     GlobalComboBoxStorable(const QString& key, const ValueType& def, const QString& text, const QString& hint, const items_supplier_t& itemsf):
@@ -561,16 +578,17 @@ public:
 
     QVariant getUserData() const
     {
-       QVariant r;
-       if (cb)
-       {
-           int index = getStoredSelection();
-           if (index > -1)
-           r = cb->itemData(index, Qt::UserRole);
-       }
-       return r;
+        QVariant r;
+        if (cb)
+        {
+            int index = getStoredSelection();
+            if (index > -1)
+                r = cb->itemData(index, Qt::UserRole);
+        }
+        return r;
     }
     DECL_DESTRUCTOR(GlobalComboBoxStorable);
+    DEF_BTN_IMPL
 };
 
 
