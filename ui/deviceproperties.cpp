@@ -70,7 +70,7 @@ QStringList DeviceProperties::readAllValues() const
         if (p1)
             res.push_back(QString("%1:\t%2").arg(p1->getUserText()).arg(v.second->getAsVariant().value<QString>()));
         else
-            res.push_back("Here should be some uknown value. dynamic_cast<UserHintHolderForSettings*> failed.");
+            res.push_back("Here should be some unknown value. dynamic_cast<UserHintHolderForSettings*> failed.");
     }
     return res;
 }
