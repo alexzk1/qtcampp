@@ -117,9 +117,14 @@ QList<QWidget *> StaticSettingsMap::createWidgets() const
     return r;
 }
 
+QString UserHintHolderForSettings::getUserText() const
+{
+    return userText;
+}
+
 UserHintHolderForSettings::~UserHintHolderForSettings()
 {
-
+    
 }
 
 ISaveableWidget::~ISaveableWidget()

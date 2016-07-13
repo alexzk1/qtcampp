@@ -305,6 +305,9 @@ signals:
 class UserHintHolderForSettings
 {
 
+public:
+    QString getUserText() const;
+
 protected:
     const QString userText;
     const QString userHint;
@@ -357,8 +360,8 @@ protected:
 
 //----------Classes which keep persistent values in settings and automatically supply widgets for GUI ----------------------------
 //say "NO!" to copy-paste ....
-#define STORABLE_ATOMIC_CLASS(NAME, TYPE) class NAME: public SaveableWidgetTempl<TYPE, true>, virtual protected UserHintHolderForSettings
-#define STORABLE_CLASS(NAME, TYPE) class NAME: public SaveableWidgetTempl<TYPE, false>, virtual protected UserHintHolderForSettings
+#define STORABLE_ATOMIC_CLASS(NAME, TYPE) class NAME: public SaveableWidgetTempl<TYPE, true>, virtual public UserHintHolderForSettings
+#define STORABLE_CLASS(NAME, TYPE) class NAME: public SaveableWidgetTempl<TYPE, false>, virtual public UserHintHolderForSettings
 #define STORABLE_CONSTRUCTOR(NAME) NAME(const QString& key, const ValueType& def, const QString& text, const QString& hint): \
     UserHintHolderForSettings(text, hint) ,SaveableWidgetTempl(key, def){} \
     NAME() = delete;

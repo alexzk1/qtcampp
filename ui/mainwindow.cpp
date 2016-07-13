@@ -7,6 +7,8 @@
 #include <QDir>
 #include <array>
 #include <QAction>
+#include <QFile>
+#include <QTextStream>
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
@@ -53,23 +55,37 @@ MainWindow::MainWindow(QWidget *parent) :
         ++counter;
         ui->videoOut->setPixmap(pix);
 
-        static int    seriesLimit = 0;
-        static int    seriesCount = 0;
-        static qint64 seriesID = -1;
-
+        static int     seriesLimit = 0;
+        static int     seriesCount = 0;
+        static qint64  seriesID = -1;
+        static QString path;
         if (doASeries)
         {
             doASnap = false;
+
             if (ui->actionSeries_Shoot->isEnabled())
             {
                 seriesID = getNextSeriesId();
+                path     = savingPath(seriesID);
+
                 ui->actionSeries_Shoot->setEnabled(false);
                 seriesCount = 0;
                 seriesLimit = StaticSettingsMap::getGlobalSetts().readInt("Wp0SeriesLen");
+
+                if (lastPropPane)
+                {
+                    QFile txt(QString("%1/used_settings.txt").arg(path));
+                    txt.open(QIODevice::WriteOnly | QIODevice::Text);
+                    QTextStream out(&txt);
+                    auto sl = lastPropPane->readAllValues();
+                    for (const auto& s : sl)
+                        out << s <<"\n";
+                }
+
             }
 
             if (seriesCount++ < seriesLimit)
-                saveSnapshoot(pix, seriesID);
+                saveSnapshoot(pix, path);
             else
             {
                 doASeries = false;
@@ -79,7 +95,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
         if (doASnap)
         {
-            saveSnapshoot(pix, -1);
+            saveSnapshoot(pix, savingPath(-1));
             doASnap = false;
         }
 
@@ -191,7 +207,7 @@ void MainWindow::createStatusBar()
     showFps(0);
 }
 
-void MainWindow::saveSnapshoot(const QPixmap &pxm, qint64 series)
+void MainWindow::saveSnapshoot(const QPixmap &pxm, const QString& path)
 {
     const static std::string formats[]
     {
@@ -200,32 +216,37 @@ void MainWindow::saveSnapshoot(const QPixmap &pxm, qint64 series)
         "jpg",
     };
 
-    //that will remain the same between program launches, so kinda "night picturing", when you start at 9pm and end-up at 6am -- all will be in same folder
-    const static QString dateDir = QDate::currentDate().toString("dd_MMM_yyyy");
-
     int index = StaticSettingsMap::getGlobalSetts().readInt("Wp0SingleShotFormat");
-    QString folder; //for thread-safety will do it here
-    StaticSettingsMap::getGlobalSetts().readValue<QString, false>("WorkingFolder", folder);
 
     QString fi;
     auto next = getNextFileId();
     fi = QString("%1.%2").arg(next,8,10,QChar('0')).arg(formats[index].c_str());
 
 
-    auto executor = [this, index, folder, fi, pxm, series]()
+    auto executor = [this, index, fi, pxm, path]()
     {
-        QString path= folder +"/" +dateDir;
-        if (series > -1)
-        {
-            path = path + QString("/ser_%1").arg(series,4,10,QChar('0'));
-        }
-        QDir dir;dir.mkpath(path);
         auto fn = QString("%1/%2").arg(path).arg(fi);
         pxm.save(fn, formats[index].c_str());
     };
 
     std::thread tmp(executor);
     tmp.detach();
+}
+
+QString MainWindow::savingPath(qint64 series)
+{
+    //that will remain the same between program launches, so kinda "night picturing", when you start at 9pm and end-up at 6am -- all will be in same folder
+    const static QString dateDir = QDate::currentDate().toString("dd_MMM_yyyy");
+
+    QString folder; //for thread-safety will do it here
+    StaticSettingsMap::getGlobalSetts().readValue<QString, false>("WorkingFolder", folder);
+    QString path= folder +"/" +dateDir;
+    if (series > -1)
+    {
+        path = path + QString("/ser_%1").arg(series,4,10,QChar('0'));
+    }
+    QDir dir;dir.mkpath(path);
+    return path;
 }
 
 qint64 MainWindow::getNextFileId()

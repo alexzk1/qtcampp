@@ -45,6 +45,8 @@ public:
 
     v4l2device_ptr getCurrDevice() const;
 
+    QStringList readAllValues() const;
+
 signals:
     void deviceDisconnected();
     void deviceRestored();

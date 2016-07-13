@@ -6,6 +6,7 @@
 #include <memory>
 #include "live_filter.h"
 
+//simple linear frame's addition - allows to lower random noise (rises SNR)
 class OnlineStacker : public ILiveFilter
 {
 public:

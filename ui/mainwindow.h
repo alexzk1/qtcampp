@@ -81,7 +81,9 @@ private:
 #endif
     void buildFilters();
 
-    void saveSnapshoot(const QPixmap& pxm, qint64 series);
+
+    void saveSnapshoot(const QPixmap& pxm, const QString &path);
+    QString savingPath(qint64 series);
 
     void relistIfLost();
     void forceRelist();

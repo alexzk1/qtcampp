@@ -61,6 +61,17 @@ v4l2device_ptr DeviceProperties::getCurrDevice() const
     return currDevice;
 }
 
+QStringList DeviceProperties::readAllValues() const
+{
+    QStringList res;
+    for (const auto& v : holder)
+    {
+        auto p1 = dynamic_cast<UserHintHolderForSettings*>(v.second.get());
+        res.push_back(QString("%1:\t%2").arg(p1->getUserText()).arg(v.second->getAsVariant().value<QString>()));
+    }
+    return res;
+}
+
 void DeviceProperties::controlValueChanged(const DeviceProperties::widgetted_pt &p, const v4l2_query_ext_ctrl &c)
 {
     //lambda in constructor grow too big, so moved part of it here
