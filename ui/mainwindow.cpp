@@ -278,7 +278,10 @@ void MainWindow::relistIfLost()
             on_actionSelect_Camera_triggered(true);
         alreadyOpened.clear();
         if (lastSubaction)
+        {
             lastSubaction->setChecked(true);
+            lastSubaction->trigger();
+        }
     }
 }
 
