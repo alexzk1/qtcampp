@@ -275,13 +275,15 @@ void MainWindow::relistIfLost()
         }
 
         if (needRelist)
-            on_actionSelect_Camera_triggered(true);
-        alreadyOpened.clear();
-        if (lastSubaction)
         {
-            lastSubaction->setChecked(true);
-            lastSubaction->trigger();
+            on_actionSelect_Camera_triggered(true);
+            if (lastSubaction)
+            {
+                lastSubaction->setChecked(true);
+                lastSubaction->trigger();
+            }
         }
+        alreadyOpened.clear();
     }
 }
 
@@ -332,7 +334,7 @@ void MainWindow::launchVideoCap()
             dev->cameraInput(std::bind(&MainWindow::camera_input, this, std::placeholders::_1,
                                        std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6),
                              (GREYSCALE)?V4L2_PIX_FMT_GREY:V4L2_PIX_FMT_RGB24);
-                             //(GREYSCALE)?V4L2_PIX_FMT_Y16_BE:V4L2_PIX_FMT_RGB24);
+            //(GREYSCALE)?V4L2_PIX_FMT_Y16_BE:V4L2_PIX_FMT_RGB24);
         }
     }
 }
