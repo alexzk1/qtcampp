@@ -10,8 +10,8 @@ settings automatically;
 * if camera is reconnected to the same usb slot it is able to pick it and re-apply settings and continue;
 * for each camera program keeps 10 separated preset settings. When you switch to "never used yet" it gets copied from previsious active. It allows to make fast switches using keyboard shortcuts;
 * there are "night mode" and "fullscreen mode", in conjunction those both allow to use small notebook (like 1024 x 600 screen) to make pictures in the field at the night time over telescope;
-* last used camera will be opened on start if present.
-
+* last used camera will be opened on start if present;
+* camera settings can be dragged top-down and realigned to access most used without scrolling (like exposure).
 
 ### Limitations:
 
