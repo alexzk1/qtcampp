@@ -18,10 +18,17 @@ private:
     std::vector<uint8_t>    buffer;
     uint32_t lastW;
     uint32_t lastH;
+    size_t   lastSize;
     QPixmap pxmBuff;
+    size_t grey_step;
+
+    void setBuffer(bool had_change, const uint8_t* mem, size_t size, size_t step = 1);
 public:
     ppm_p6_buffer();
     void set_data(uint32_t w, uint32_t h, const uint8_t* mem, size_t size);
+    void set_data_grey8bit(uint32_t w, uint32_t h, const uint8_t* mem, size_t size);
+    void set_data_p7(uint32_t w, uint32_t h, const uint8_t* mem, size_t size, uint32_t v4lformat);
+
     const QPixmap& toPixmap();
 };
 

@@ -89,7 +89,7 @@ public:
     using interruptor_ptr     = std::shared_ptr<interruptor_t>;
     using input_thread_ptr    = std::shared_ptr<std::thread>;
     using buffers_t           = std::vector<mmapped_buffer_ptr>;
-    using frame_receiver      = std::function<void (__u32 w, __u32 h, const uint8_t* memory, size_t length,  int64_t ms_per_frame)>;
+    using frame_receiver      = std::function<void (__u32 w, __u32 h, const uint8_t* memory, size_t length,  int64_t ms_per_frame, __u32 format)>;
 protected:
     using dev_hndl   = auto_closable<int>;
     using dev_hndl_p = std::shared_ptr<dev_hndl>;
@@ -100,7 +100,7 @@ private:
     v4l2_capability m_capability;
     interruptor_t interruptor;
     input_thread_ptr m_thread;
-    std::atomic<bool> pixelFormatChanged;
+    std::atomic<bool> sourcePixelFormatChanged;
 protected:
     int     fd() const;
     bool    querycap(v4l2_capability &cap) const;

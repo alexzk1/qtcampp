@@ -52,7 +52,7 @@ int v4l2device::fd() const
 v4l2device::v4l2device():
     interruptor(true),
     m_thread(nullptr),
-    pixelFormatChanged(false)
+    sourcePixelFormatChanged(false)
 {
     memset(&m_capability, 0, sizeof(m_capability));
 }
@@ -345,7 +345,7 @@ bool v4l2device::cameraInput(const frame_receiver& receiver, __u32 pixelFormatRe
                         });
                         if (converter)
                         {
-                            pixelFormatChanged = false;
+                            sourcePixelFormatChanged = false;
                             for (auto& b : buffers) //enqueue all buffers
                                 busy_wait(VIDIOC_QBUF, b->buf);
                             cam_buf.type   = buffers.at(0)->buf.type;
@@ -359,7 +359,7 @@ bool v4l2device::cameraInput(const frame_receiver& receiver, __u32 pixelFormatRe
                             destFormat.fmt.pix.pixelformat = pixelFormatReceiver;
                             v4lconvert_try_format(converter.get(), &destFormat, nullptr);
                             destBuffer.reserve(destFormat.fmt.pix.sizeimage); //lib properly calculates buffer size in my case
-                            destBuffer.resize(destBuffer.capacity());
+                            destBuffer.resize(destBuffer.capacity(), 0);
 
                             streamon(cam_buf.type);
                         }
@@ -455,7 +455,7 @@ bool v4l2device::cameraInput(const frame_receiver& receiver, __u32 pixelFormatRe
 
                                 //be aware that we output pure pixels there, so listener must add proper headers to load as image
 
-                                receiver(destFormat.fmt.pix.width, destFormat.fmt.pix.height, destBuffer.data(), static_cast<size_t>(size), duration.count());
+                                receiver(destFormat.fmt.pix.width, destFormat.fmt.pix.height, destBuffer.data(), static_cast<size_t>(size), duration.count(), destFormat.fmt.pix.pixelformat);
 
                             } catch (...)
                             {
@@ -476,7 +476,7 @@ bool v4l2device::cameraInput(const frame_receiver& receiver, __u32 pixelFormatRe
                 if (++loopCounter % deviceTestEachNLoops == 0)
                     lostDevice = lostDevice || !is_valid_yet();
 
-                if (lostDevice || pixelFormatChanged)
+                if (lostDevice || sourcePixelFormatChanged)
                 {
                     //lets close full subsystem, maybe it will be long to re-init it back, but ...
 
@@ -488,7 +488,7 @@ bool v4l2device::cameraInput(const frame_receiver& receiver, __u32 pixelFormatRe
                         std::this_thread::sleep_for(std::chrono::duration<decltype (lostDevicePauseMs), std::milli>(lostDevicePauseMs));
                     }
                 }
-                lostDevice |= pixelFormatChanged;
+                lostDevice |= sourcePixelFormatChanged;
             }
             streamoff(cam_buf.type);
             free_buffers(buffers);
@@ -523,7 +523,7 @@ int v4l2device::setSourcePixelFormat(__u32 frm, __u32 type)
         if (r == EBUSY)
             std::this_thread::sleep_for(std::chrono::duration<int, std::milli>(10));
     }
-    pixelFormatChanged = r > -1;
+    sourcePixelFormatChanged = r > -1;
     return r;
 }
 

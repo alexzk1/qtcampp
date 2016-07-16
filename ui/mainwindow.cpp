@@ -21,6 +21,8 @@
 
 static const QString nightScheme = "QWidget {background-color: #660000;}";
 
+#define GREYSCALE StaticSettingsMap::getGlobalSetts().readBool<true>("Use_greyscale")
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     lastPropPane(nullptr),
@@ -28,6 +30,7 @@ MainWindow::MainWindow(QWidget *parent) :
     checkTimer(new QTimer(this)),
     doASnap(false),
     doASeries(false),
+    useFilters(false),
     presetsGroup(new QActionGroup(this)),
     initialPreset(nullptr)
 {
@@ -108,7 +111,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     relistIfLost();
     pereodicTestRunStop();
-
+    buildFilters();
 }
 
 MainWindow::~MainWindow()
@@ -339,7 +342,8 @@ void MainWindow::launchVideoCap()
         {
             doASnap = false;
             dev->cameraInput(std::bind(&MainWindow::camera_input, this, std::placeholders::_1,
-                                       std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5));
+                                       std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6),
+                             (GREYSCALE)?V4L2_PIX_FMT_GREY:V4L2_PIX_FMT_RGB24);
         }
     }
 }
@@ -355,8 +359,9 @@ void MainWindow::stopVideoCap()
     }
 }
 
-void MainWindow::camera_input(__u32 w, __u32 h, const uint8_t *mem, size_t size, int64_t ms_per_frame)
+void MainWindow::camera_input(__u32 w, __u32 h, const uint8_t *mem, size_t size, int64_t ms_per_frame, uint32_t pxl_format)
 {
+    Q_UNUSED(pxl_format); //todo: for now, need to figure how to display P7 format in qt (which can do 16 bit greyscale needed for very dark stars like 12-14 star size)
     auto pm = mem;
 #ifdef CAMPP_TOOLS_USED
     if (useFilters && filters.size())
@@ -365,7 +370,10 @@ void MainWindow::camera_input(__u32 w, __u32 h, const uint8_t *mem, size_t size,
             pm = f->addFrame(pm, size, w, h).data();
 #endif
     }
-    frame.set_data(w, h, pm, size);
+    if (GREYSCALE)
+        frame.set_data_grey8bit(w, h, pm, size);
+    else
+        frame.set_data(w, h, pm, size);
     emit hasFrame(frame.toPixmap(), ms_per_frame);
 }
 
