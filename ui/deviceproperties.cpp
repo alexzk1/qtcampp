@@ -42,6 +42,13 @@ DeviceProperties::DeviceProperties(const v4l2device::device_info device, QWidget
     }
 }
 
+DeviceProperties::~DeviceProperties()
+{
+    //widgets must be destroyed prior holded items or saveVertIndex(v) will give error
+    delete layout();
+    qDeleteAll(findChildren<QWidget*>("", Qt::FindDirectChildrenOnly));
+}
+
 QWidget* DeviceProperties::connectGUI(const DeviceProperties::widgetted_pt &ptr)
 {
     QWidget* w = nullptr;

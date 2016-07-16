@@ -42,7 +42,7 @@ private:
 
 public:
     explicit DeviceProperties(const v4l2device::device_info device, QWidget *parent = 0);
-
+    virtual ~DeviceProperties();
     v4l2device_ptr getCurrDevice() const;
 
     QStringList readAllValues() const;

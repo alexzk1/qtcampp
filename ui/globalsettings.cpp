@@ -102,7 +102,12 @@ namespace nmsp_gs
 StaticSettingsMap::StaticSettingsMap(const StaticSettingsMap::list_t &init):
     sets(init)
 {
-
+    for (auto& p : sets)
+    {
+        auto ptr = dynamic_cast<UserHintHolderForSettings*>(p.second.get());
+        if (ptr)
+            ptr->setMovable(false);
+    }
 }
 //-----------------------------------------------------------------------------------------------------------------------
 
@@ -122,9 +127,14 @@ QString UserHintHolderForSettings::getUserText() const
     return userText;
 }
 
+void UserHintHolderForSettings::setMovable(bool value)
+{
+    movable = value;
+}
+
 UserHintHolderForSettings::~UserHintHolderForSettings()
 {
-    
+
 }
 
 ISaveableWidget::~ISaveableWidget()

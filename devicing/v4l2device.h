@@ -122,6 +122,7 @@ protected:
     bool    get_fmt_cap(__u32 type, v4l2_format &fmt) const;
     int     set_fmt_cap(v4l2_format &fmt) const;
 
+    //bool    enum_frame_sizes() const;
 public:
     v4l2device();
     v4l2device(const v4l2device&) = delete;

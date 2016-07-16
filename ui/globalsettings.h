@@ -29,6 +29,7 @@
 #include <atomic>
 #include "variant_convert.h"
 #include "singleton.h"
+#include "dndwidget.h"
 
 namespace nmsp_gs
 {
@@ -178,7 +179,8 @@ public:
 
     SaveableWidgetTempl() = delete;
     SaveableWidgetTempl(const QString& key, T def, const QString& group = nmsp_gs::SaveableToStorage::defaultGroup):
-        state(key, def, group){}
+        state(key, def, group)
+    {}
 
     virtual void set(const T& s)
     {
@@ -227,6 +229,71 @@ public:
         emit valueChanged();
         needUpdateWidget();
     }
+};
+
+//this class just a holder of user visible description and hint bound to controls
+class UserHintHolderForSettings
+{
+
+public:
+    QString getUserText() const;
+    void setMovable(bool value);
+
+protected:
+    const QString userText;
+    const QString userHint;
+    bool  movable;
+protected:
+    UserHintHolderForSettings() = delete;
+    UserHintHolderForSettings(const QString& userText, const QString& userHint = QString()):
+        userText(userText),
+        userHint(userHint)
+    {
+        movable = true;
+    }
+    virtual ~UserHintHolderForSettings();
+
+
+
+    void setHint(QWidget *w) const
+    {
+        w->setToolTip(userHint);
+    }
+
+    QWidget* createLabeledField(QWidget *field, int fieldStretch = 3, int labelStretch = 92, int defBtnStrech = 5, QWidget* lbl = nullptr, const bool no_def_btn = false)
+    {
+        QWidget* hoster;
+        if (!no_def_btn && movable)
+            hoster = new DnDWidget(nullptr);
+        else
+            hoster = new QWidget(nullptr);
+
+        hoster->setWindowTitle(userText); //will be used to save position
+        auto hlayout = new QHBoxLayout();
+        if (!lbl)
+            lbl = new QLabel(userText);
+
+        if (!no_def_btn)
+        {
+            auto button = new QPushButton(nullptr);
+            button->setText(QObject::tr("Def"));
+            button->setToolTip(QObject::tr("Reset this field to default value."));
+            hlayout->addWidget(button, defBtnStrech);
+            QObject::connect(button, &QPushButton::pressed, [this]()
+            {
+                resetToDefButtonPressed();
+            });
+        }
+        hlayout->addWidget(field,  fieldStretch);
+        hlayout->addWidget(lbl,    labelStretch);
+        setHint(lbl);
+        setHint(field);
+
+        hoster->setLayout(hlayout);
+        return hoster;
+    }
+
+    virtual void resetToDefButtonPressed() = 0;
 };
 
 //list to make global static set of controls (like for global settings)
@@ -301,61 +368,6 @@ signals:
     void settingHaveBeenChanged(const QString& name) const;
 };
 
-//this class just a holder of user visible description and hint bound to controls
-class UserHintHolderForSettings
-{
-
-public:
-    QString getUserText() const;
-
-protected:
-    const QString userText;
-    const QString userHint;
-protected:
-    UserHintHolderForSettings() = delete;
-    UserHintHolderForSettings(const QString& userText, const QString& userHint = QString()):
-        userText(userText),
-        userHint(userHint)
-    {}
-    virtual ~UserHintHolderForSettings();
-
-
-
-    void setHint(QWidget *w) const
-    {
-        w->setToolTip(userHint);
-    }
-
-    QWidget* createLabeledField(QWidget *field, int fieldStretch = 3, int labelStretch = 92, int defBtnStrech = 5, QWidget* lbl = nullptr, const bool no_def_btn = false)
-    {
-        auto hoster = new QWidget(nullptr);
-        auto hlayout = new QHBoxLayout();
-        if (!lbl)
-            lbl = new QLabel(userText);
-
-        if (!no_def_btn)
-        {
-            auto button = new QPushButton(nullptr);
-            button->setText(QObject::tr("Def"));
-            button->setToolTip(QObject::tr("Reset this field to default value."));
-            hlayout->addWidget(button, defBtnStrech);
-            QObject::connect(button, &QPushButton::pressed, [this]()
-            {
-                resetToDefButtonPressed();
-            });
-        }
-        hlayout->addWidget(field,  fieldStretch);
-        hlayout->addWidget(lbl,    labelStretch);
-        setHint(lbl);
-        setHint(field);
-
-        hoster->setLayout(hlayout);
-
-        return hoster;
-    }
-
-    virtual void resetToDefButtonPressed() = 0;
-};
 
 
 //----------Classes which keep persistent values in settings and automatically supply widgets for GUI ----------------------------
@@ -382,7 +394,7 @@ STORABLE_ATOMIC_CLASS(GlobalStorableBool, bool)
     {
         cb = new QCheckBox(nullptr);
         cb->setChecked(getValue());
-        cb->setText(userText);
+        //cb->setText(userText);
         setHint(cb);
 
         QObject::connect(cb, &QCheckBox::toggled, this, [this](bool checked)
@@ -390,7 +402,7 @@ STORABLE_ATOMIC_CLASS(GlobalStorableBool, bool)
             set(checked);
         }, Qt::QueuedConnection);
 
-        return cb;
+        return createLabeledField(cb);
     }
     public:
     virtual void needUpdateWidget() override
