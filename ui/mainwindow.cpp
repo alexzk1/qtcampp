@@ -93,6 +93,7 @@ MainWindow::MainWindow(QWidget *parent) :
             {
                 doASeries = false;
                 ui->actionSeries_Shoot->setEnabled(true);
+                statusBar()->showMessage(tr("Finished. Couple pictures were taken at %1").arg(path), 15000);
             }
         }
 
@@ -441,6 +442,7 @@ void MainWindow::on_actionSingleShoot_triggered()
 
 void MainWindow::on_actionSeries_Shoot_triggered()
 {
+    statusBar()->showMessage(tr("Doing multiply shoots..."), 5000);
     doASeries = true;
 }
 
