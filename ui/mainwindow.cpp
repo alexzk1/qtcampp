@@ -171,20 +171,6 @@ void MainWindow::on_actionSelect_Camera_triggered(bool prefferStored)
 
 }
 
-void MainWindow::on_actionApply_All_triggered()
-{
-    relistIfLost();
-    if (lastPropPane)
-        lastPropPane->reapplyAll();
-}
-
-void MainWindow::on_actionReset_triggered()
-{
-    relistIfLost();
-    if (lastPropPane)
-        lastPropPane->resetToDefaults();
-}
-
 void MainWindow::device_lost()
 {
     const static QPixmap empty;
@@ -344,6 +330,7 @@ void MainWindow::launchVideoCap()
             dev->cameraInput(std::bind(&MainWindow::camera_input, this, std::placeholders::_1,
                                        std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6),
                              (GREYSCALE)?V4L2_PIX_FMT_GREY:V4L2_PIX_FMT_RGB24);
+                             //(GREYSCALE)?V4L2_PIX_FMT_Y16_BE:V4L2_PIX_FMT_RGB24);
         }
     }
 }
@@ -455,6 +442,20 @@ void MainWindow::on_actionSingleShoot_triggered()
 void MainWindow::on_actionSeries_Shoot_triggered()
 {
     doASeries = true;
+}
+
+void MainWindow::on_actionApply_All_triggered()
+{
+    forceRelist();
+    if (lastPropPane)
+        lastPropPane->reapplyAll();
+}
+
+void MainWindow::on_actionReset_triggered()
+{
+    forceRelist();
+    if (lastPropPane)
+        lastPropPane->resetToDefaults();
 }
 
 void MainWindow::on_actionEnable_Filter_s_triggered(bool checked)
