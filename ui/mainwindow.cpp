@@ -31,8 +31,7 @@ MainWindow::MainWindow(QWidget *parent) :
     doASnap(false),
     doASeries(false),
     useFilters(false),
-    presetsGroup(new QActionGroup(this)),
-    initialPreset(nullptr)
+    presetsGroup(new QActionGroup(this))
 {
     ui->setupUi(this);
     readSettings(this);
@@ -151,9 +150,6 @@ void MainWindow::recurseWrite(QSettings &settings, QObject *object)
 void MainWindow::on_actionSelect_Camera_triggered(bool prefferStored)
 {
     auto dev = SelectDeviceDialog::pickDevice(this, prefferStored);
-
-    if (initialPreset) //if we got re-created device frame - reset preset to default
-        initialPreset->setChecked(true);
 
     //The widget becomes a child of the scroll area, and will be destroyed when the scroll area is deleted
     //or when a new widget is set.
@@ -281,6 +277,8 @@ void MainWindow::relistIfLost()
         if (needRelist)
             on_actionSelect_Camera_triggered(true);
         alreadyOpened.clear();
+        if (lastSubaction)
+            lastSubaction->setChecked(true);
     }
 }
 
@@ -374,18 +372,18 @@ void MainWindow::buildGuiParts()
             QString ks = QString("alt+%1").arg(i % 10);
             auto a = ui->menuSettings->addAction(tr("Camera Preset %1").arg(i));
             a->setShortcut(ks);
-            connect(a, &QAction::triggered, this, [this, i]()
+            connect(a, &QAction::triggered, this, [this, i, a]()
             {
                 if (lastPropPane)
                 {
                     lastPropPane->setSubgroup(i - 1);
+                    lastSubaction = a;
                 }
             }, Qt::QueuedConnection);
             a->setCheckable(true);
             if (i == 1)
             {
                 a->setChecked(true);
-                initialPreset = a;
             }
             presetsGroup->addAction(a);
         }

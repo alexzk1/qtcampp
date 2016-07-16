@@ -72,9 +72,9 @@ private:
     std::atomic<bool> doASnap;
     std::atomic<bool> doASeries;
     std::atomic<bool> useFilters;
+    QPointer<QAction> lastSubaction;
 
     QPointer<QActionGroup> presetsGroup;
-    QPointer<QAction> initialPreset;
 
 #ifdef CAMPP_TOOLS_USED
     std::vector<std::shared_ptr<ILiveFilter>> filters;
