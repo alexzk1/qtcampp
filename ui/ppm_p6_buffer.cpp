@@ -65,7 +65,7 @@ void ppm_p6_buffer::set_data_grey8bit(uint32_t w, uint32_t h, const uint8_t *mem
         lastW = w;
         lastH = h;
         lastSize = size;
-        grey_step = std::max(1ul, lastSize / (w * h));
+        grey_step = std::max(1ul, lastSize / (w * h)); //my 64 bit v4l returns 16 bit instead 8bit for V4L2_PIX_FMT_GREY
     }
     setBuffer(had_change, mem, size, grey_step);
 }
