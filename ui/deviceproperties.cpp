@@ -39,14 +39,45 @@ DeviceProperties::DeviceProperties(const v4l2device::device_info device, QWidget
         setLayout(layout);
         listControls();
         listFormats();
+
+        QSettings s;
+        s.beginGroup("dev_prop_"+settings_group);
+        auto lst = findChildren<QWidget*>("", Qt::FindDirectChildrenOnly);
+        for (auto & i: lst)
+        {
+            auto ptr = qobject_cast<DnDWidget*>(i);
+            if (ptr) //saving only movable widgets
+            {
+                int ind = s.value(i->windowTitle(), -1).toInt();
+                if (ind > -1)
+                {
+                    layout->removeWidget(i);
+                    layout->insertWidget(ind, i);
+                }
+            }
+        }
+        s.endGroup();
     }
 }
 
 DeviceProperties::~DeviceProperties()
 {
     //widgets must be destroyed prior holded items or saveVertIndex(v) will give error
-    delete layout();
-    qDeleteAll(findChildren<QWidget*>("", Qt::FindDirectChildrenOnly));
+
+
+    QSettings s;
+    s.beginGroup("dev_prop_"+settings_group);
+    auto lst = findChildren<QWidget*>("", Qt::FindDirectChildrenOnly);
+    for (auto & i: lst)
+    {
+        auto ptr = qobject_cast<DnDWidget*>(i);
+        if (ptr) //saving only movable widgets
+        {
+            int ind = layout()->indexOf(i);
+            s.setValue(i->windowTitle(), ind);
+        }
+    }
+    s.endGroup();
 }
 
 QWidget* DeviceProperties::connectGUI(const DeviceProperties::widgetted_pt &ptr)
@@ -212,7 +243,7 @@ void DeviceProperties::listFormats()
                           s << QString(reinterpret_cast<const char*>(f.description));
                           v << f.pixelformat;
                       }
-        }));
+                  }));
 
         holder[FORMAT_WIDGET_ID] = ptr;
         widgetted_ptw wp = ptr;

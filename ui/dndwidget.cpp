@@ -73,8 +73,11 @@ void DnDWidget::mouseMoveEvent(QMouseEvent *event)
 {
     if(event->buttons() & Qt::LeftButton)
     {
-        hadDrag = true;
-        this->move(mapToParent(event->pos() - clickOffset));
+        if (std::abs(clickOffset.y() - event->pos().y()) > 15 || hadDrag) //antishake
+        {
+            hadDrag = true;
+            this->move(mapToParent(event->pos() - clickOffset));
+        }
     }
 }
 
