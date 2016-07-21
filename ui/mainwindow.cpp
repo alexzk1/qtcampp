@@ -9,6 +9,7 @@
 #include <QAction>
 #include <QFile>
 #include <QTextStream>
+#include <QInputDialog>
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
@@ -31,7 +32,8 @@ MainWindow::MainWindow(QWidget *parent) :
     doASnap(false),
     doASeries(false),
     useFilters(false),
-    presetsGroup(new QActionGroup(this))
+    presetsGroup(new QActionGroup(this)),
+    lastNaming()
 {
     ui->setupUi(this);
     readSettings(this);
@@ -187,8 +189,11 @@ void MainWindow::createStatusBar()
 {
     connStatusLabel = new QLabel();
     fpsLabel = new QLabel();
+    namingLabel = new QLabel();
+
     statusBar()->addPermanentWidget(connStatusLabel);
     statusBar()->addWidget(fpsLabel);
+    statusBar()->addWidget(namingLabel);
     setStatus(false);
     showFps(0);
 }
@@ -206,7 +211,10 @@ void MainWindow::saveSnapshoot(const QPixmap &pxm, const QString& path)
 
     QString fi;
     auto next = getNextFileId();
-    fi = QString("%1.%2").arg(next,8,10,QChar('0')).arg(formats[index].c_str());
+    if (lastNaming.isEmpty())
+        fi = QString("%1.%2").arg(next,8,10,QChar('0')).arg(formats[index].c_str());
+    else
+        fi = QString("%1_%3.%2").arg(next,8,10,QChar('0')).arg(formats[index].c_str()).arg(lastNaming);
 
 
     auto executor = [this, index, fi, pxm, path]()
@@ -470,4 +478,17 @@ void MainWindow::on_actionEnable_Filter_s_triggered(bool checked)
     for (auto& f : filters)
         f->reset();
 #endif
+}
+
+void MainWindow::on_actionNaming_triggered()
+{
+    bool ok;
+    QString text = QInputDialog::getText(this, tr("Enter custom part of the file name"),
+                                            tr("Name:"), QLineEdit::Normal, lastNaming, &ok);
+    if (ok)
+    {
+        lastNaming = text;
+        if (namingLabel)
+            namingLabel->setText(tr("Naming: \"%1\"").arg(text));
+    }
 }

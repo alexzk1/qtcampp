@@ -58,7 +58,7 @@ const StaticSettingsMap &StaticSettingsMap::getGlobalSetts()
                                             tr("Defines random noise (which may come from the sensor overheated) filter quality.\n"
                                             "Value 0 means OFF, each +1 rises SNR by about +3Db,\n"
                                             "but rises \"motion lag\" as well. Bigger values maybe used on static objects. Consumes CPU."),
-                                            0, 12),
+                                            0, 7),
 
                                             DECL_SETT(GlobalStorableBool, "Use_greyscale", false, tr("Greyscale"), tr("If enabled does conversion to greyscale.")),
                                         });

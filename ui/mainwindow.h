@@ -59,6 +59,8 @@ private slots:
 
     void on_actionEnable_Filter_s_triggered(bool checked);
 
+    void on_actionNaming_triggered();
+
 signals:
     void hasFrame(QPixmap pix, int64_t ms_per_frame); //used to resolve cross thread from puller to GUI
 private:
@@ -67,6 +69,7 @@ private:
 
     QPointer<QLabel> fpsLabel;
     QPointer<QLabel> connStatusLabel;
+    QPointer<QLabel> namingLabel;
     ppm_p6_buffer frame;
     QPointer<QTimer> checkTimer;
     std::atomic<bool> doASnap;
@@ -75,7 +78,7 @@ private:
     QPointer<QAction> lastSubaction;
 
     QPointer<QActionGroup> presetsGroup;
-
+    QString lastNaming;
 #ifdef CAMPP_TOOLS_USED
     std::vector<std::shared_ptr<ILiveFilter>> filters;
 #endif

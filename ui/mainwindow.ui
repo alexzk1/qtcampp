@@ -78,6 +78,7 @@
     <addaction name="actionSeries_Shoot"/>
     <addaction name="separator"/>
     <addaction name="actionEnable_Filter_s"/>
+    <addaction name="actionNaming"/>
    </widget>
    <widget class="QMenu" name="menuSettings">
     <property name="title">
@@ -114,6 +115,7 @@
    <addaction name="separator"/>
    <addaction name="actionSettings"/>
    <addaction name="actionEnable_Filter_s"/>
+   <addaction name="actionNaming"/>
    <addaction name="separator"/>
    <addaction name="actionSingleShoot"/>
    <addaction name="actionSeries_Shoot"/>
@@ -207,6 +209,9 @@
    <property name="shortcut">
     <string>F11</string>
    </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
+   </property>
   </action>
   <action name="actionNight_Mode">
    <property name="checkable">
@@ -219,7 +224,7 @@
     <string>Eyes saving mode for darkness.</string>
    </property>
    <property name="shortcut">
-    <string>F12</string>
+    <string>F10</string>
    </property>
    <property name="shortcutContext">
     <enum>Qt::ApplicationShortcut</enum>
@@ -270,13 +275,34 @@
      <normaloff>:/icons/icons/Very-Basic-Filter-Filled-icon.png</normaloff>:/icons/icons/Very-Basic-Filter-Filled-icon.png</iconset>
    </property>
    <property name="text">
-    <string>Enable Filter(s)</string>
+    <string>Enable &amp;Filter(s)</string>
    </property>
    <property name="toolTip">
     <string>Applies filter(s), which are activated in settings.</string>
    </property>
    <property name="shortcut">
-    <string>F</string>
+    <string>Ctrl+Shift+F</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
+   </property>
+  </action>
+  <action name="actionNaming">
+   <property name="icon">
+    <iconset resource="../resources.qrc">
+     <normaloff>:/icons/icons/name-card-icon.png</normaloff>:/icons/icons/name-card-icon.png</iconset>
+   </property>
+   <property name="text">
+    <string>Naming</string>
+   </property>
+   <property name="toolTip">
+    <string>Adds some custom text to the file name.</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+N</string>
+   </property>
+   <property name="shortcutContext">
+    <enum>Qt::ApplicationShortcut</enum>
    </property>
   </action>
  </widget>
