@@ -198,18 +198,18 @@ void MainWindow::createStatusBar()
     showFps(0);
 }
 
-void MainWindow::saveSnapshoot(const QPixmap &pxm, const QString& path)
+QString MainWindow::genFileName(bool singleFrame)
 {
-    const static std::string formats[]
+    QString fi = "";
+    const static std::vector<std::string> formats
     {
         "png",
         "ppm",
         "jpg",
+        "avi" //must be last
     };
 
-    int index = StaticSettingsMap::getGlobalSetts().readInt("Wp0SingleShotFormat");
-
-    QString fi;
+    size_t index = (singleFrame)?static_cast<size_t>(StaticSettingsMap::getGlobalSetts().readInt("Wp0SingleShotFormat")):formats.size() - 1;
     auto next = getNextFileId();
     if (lastNaming.isEmpty())
         fi = QString("%1.%2").arg(next,8,10,QChar('0')).arg(formats[index].c_str());
@@ -217,10 +217,16 @@ void MainWindow::saveSnapshoot(const QPixmap &pxm, const QString& path)
         fi = QString("%1_%3.%2").arg(next,8,10,QChar('0')).arg(formats[index].c_str()).arg(lastNaming);
 
 
-    auto executor = [this, index, fi, pxm, path]()
+    return fi;
+}
+
+void MainWindow::saveSnapshoot(const QPixmap &pxm, const QString& path)
+{
+    QString fi = genFileName(true);
+    auto executor = [this, fi, pxm, path]()
     {
         auto fn = QString("%1/%2").arg(path).arg(fi);
-        pxm.save(fn, formats[index].c_str());
+        pxm.save(fn);
     };
 
     std::thread tmp(executor);
@@ -403,7 +409,6 @@ void MainWindow::buildGuiParts()
     }
 }
 
-
 void MainWindow::buildFilters()
 {
 #ifdef CAMPP_TOOLS_USED
@@ -484,7 +489,7 @@ void MainWindow::on_actionNaming_triggered()
 {
     bool ok;
     QString text = QInputDialog::getText(this, tr("Enter custom part of the file name"),
-                                            tr("Name:"), QLineEdit::Normal, lastNaming, &ok);
+                                         tr("Name:"), QLineEdit::Normal, lastNaming, &ok);
     if (ok)
     {
         lastNaming = text;

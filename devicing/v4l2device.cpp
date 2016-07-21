@@ -28,7 +28,6 @@ const static uint64_t deviceTestEachNLoops = 1000; //not too often check if we d
 #include "ui/globalsettings.h"
 #define BUFFERS_AMOUNT (StaticSettingsMap::getGlobalSetts().readInt("VideoBuffs"))
 #define CUSTOM_YUVY (StaticSettingsMap::getGlobalSetts().readBool("CustomYUYV"))
-#define RGB_COEF (StaticSettingsMap::getGlobalSetts().readBool("UseColorCoeff"))
 #else
 //standalone, stl solution, maybe used elsewhere
 #define BUFFERS_AMOUNT 10
@@ -309,7 +308,7 @@ bool v4l2device::cameraInput(const frame_receiver& receiver, __u32 pixelFormatRe
             auto  start = std::chrono::steady_clock::now();
 
             bool useCustomConversion  = CUSTOM_YUVY;
-            bool luminicityCorrection = RGB_COEF;
+
 
             //device maybe busy, especially at the startup + i7 cpu, so need to wait some if driver says so
             //not really sure what will happen if cable will be disconnected exatly inside loop
@@ -395,15 +394,9 @@ bool v4l2device::cameraInput(const frame_receiver& receiver, __u32 pixelFormatRe
                                 double r;
                                 double g;
                                 double b;
-                                auto color_correction = [&r, &g, &b, &luminicityCorrection]()
+                                auto color_correction = [&r, &g, &b]()
                                 {
                                     //This prevents colour distortions in your rgb image
-                                    if (luminicityCorrection)
-                                    {
-                                        r *= 0.299;
-                                        g *= 0.587;
-                                        b *= 0.114;
-                                    }
 
                                     if (r < 0) r = 0;
                                     else if (r > 255) r = 255;
@@ -455,7 +448,8 @@ bool v4l2device::cameraInput(const frame_receiver& receiver, __u32 pixelFormatRe
 
                                 //be aware that we output pure pixels there, so listener must add proper headers to load as image
 
-                                receiver(destFormat.fmt.pix.width, destFormat.fmt.pix.height, destBuffer.data(), static_cast<size_t>(size), duration.count(), destFormat.fmt.pix.pixelformat);
+                                receiver(destFormat.fmt.pix.width, destFormat.fmt.pix.height, destBuffer.data(),
+                                         static_cast<size_t>(size), duration.count(), destFormat.fmt.pix.pixelformat);
 
                             } catch (...)
                             {

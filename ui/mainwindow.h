@@ -100,6 +100,7 @@ private:
     void camera_input(__u32 w, __u32 h, const uint8_t* mem, size_t size,  int64_t ms_per_frame, uint32_t pxl_format);
 
     void buildGuiParts();
+    QString genFileName(bool singleFrame);
 };
 
 #endif // MAINWINDOW_H

@@ -50,10 +50,6 @@ const StaticSettingsMap &StaticSettingsMap::getGlobalSetts()
                                             "On fastest CPUs/SSDs it is limited by FPS (i.e. 30FPS will give 30 different shoots at most).\n"
                                             "On slower CPUs/HDDs you may need to increase buffers' amount."), 2, 3000),
 
-                                            DECL_SETT(GlobalStorableBool, "UseColorCoeff", false, tr("Apply custom R-G-B coefficeints."),
-                                            tr("If enabled it will multiply R-G-B by coefficients found in REGISTAX to align luminance of the sky objects.\n"
-                                            "Affects only custom YUYV conversion.")),
-
                                             DECL_SETT(GlobalStorableInt, "NoiseFilter", 0, tr("Random Noise Filter Quality."),
                                             tr("Defines random noise (which may come from the sensor overheated) filter quality.\n"
                                             "Value 0 means OFF, each +1 rises SNR by about +3Db,\n"
