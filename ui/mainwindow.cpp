@@ -216,7 +216,6 @@ QString MainWindow::genFileName(bool singleFrame)
     else
         fi = QString("%1_%3.%2").arg(next,8,10,QChar('0')).arg(formats[index].c_str()).arg(lastNaming);
 
-
     return fi;
 }
 
