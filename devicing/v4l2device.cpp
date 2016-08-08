@@ -315,12 +315,14 @@ bool v4l2device::cameraInput(const frame_receiver& receiver, __u32 pixelFormatRe
             auto busy_wait = [this](__u32 code, v4l2_buffer& cam_buf) ->int
             {
                 int co = 0;
-                while (interruptor)
+                while(interruptor)
                 {
                     co = ioctl(code, &cam_buf);
 
                     if (co == -1)
                         co = errno;
+                    else
+                        break;
 
                     if (co == EAGAIN)
                         std::this_thread::sleep_for(std::chrono::duration<int, std::milli>(10));
@@ -420,7 +422,7 @@ bool v4l2device::cameraInput(const frame_receiver& receiver, __u32 pixelFormatRe
                                     b = y + (1.7790 * (cb - 128));
                                     color_correction();
 
-                                    destBuffer[i + 0]   = static_cast<uint8_t>(r);
+                                    destBuffer[i + 0] = static_cast<uint8_t>(r);
                                     destBuffer[i + 1] = static_cast<uint8_t>(g);
                                     destBuffer[i + 2] = static_cast<uint8_t>(b);
 

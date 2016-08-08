@@ -6,7 +6,8 @@
 
 QT       += core gui
 
-QMAKE_CXXFLAGS += -std=c++11 -Wall -mtune=native -mfpmath=sse
+QMAKE_CXXFLAGS += -std=c++11 -Wall -mtune=native -mfpmath=sse -Werror=strict-aliasing -fstrict-aliasing -Wctor-dtor-privacy -Werror=delete-non-virtual-dtor
+QMAKE_CXXFLAGS += -fexceptions -Werror=return-type -Werror=overloaded-virtual
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
