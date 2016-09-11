@@ -362,6 +362,11 @@ bool v4l2device::cameraStartInput()
                             {
                                 try
                                 {
+                                    //trying to init converter if it was added while everything is running already
+                                    if (!p.second->isInitialized())
+                                    {
+                                        p.second->initConverter(fd(), srcFormat);
+                                    }
                                     p.second->setNextFrame(srcFormat, buf->memory, buf->mem_len);
                                 }
                                 catch (...)

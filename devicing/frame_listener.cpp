@@ -26,7 +26,7 @@ bool frame_listener::isInitialized()
 
 void frame_listener::setNextFrame(const v4l2_format& srcFormat, const uint8_t* memory, size_t length)
 {
-    if (converter)
+    if (isInitialized())
     {
         int size = static_cast<int>(destBuffer.size());
         size = v4lconvert_convert(converter.get(), &srcFormat,
@@ -47,7 +47,7 @@ void frame_listener::setNextFrame(const v4l2_format& srcFormat, const uint8_t* m
             std::cerr << v4lconvert_get_error_message(converter.get()) <<std::endl;
     }
     else
-        std::cerr << "Converter is not initialized." << std::endl;
+        std::cerr << "Converter is not initialized or buffer not allocated." << std::endl;
 }
 
 size_t frame_listener::initConverter(int fd, const v4l2_format &srcFormat)
