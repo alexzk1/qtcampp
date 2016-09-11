@@ -149,7 +149,7 @@ public:
 
 
     //multithreaded camera capturing, setting
-    bool cameraStartInput();
+    bool startCameraInput();
     int setSourcePixelFormat( __u32 frm, __u32 type = V4L2_BUF_TYPE_VIDEO_CAPTURE);
     void stopCameraInput();
     bool isCameraRunning();

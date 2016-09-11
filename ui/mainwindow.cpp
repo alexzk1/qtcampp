@@ -350,7 +350,7 @@ void MainWindow::launchVideoCap()
                                                       (GREYSCALE)?V4L2_PIX_FMT_GREY:V4L2_PIX_FMT_RGB24));
 
             dev->setNamedListener("picout", ptr);
-            dev->cameraStartInput();
+            dev->startCameraInput();
         }
     }
 }

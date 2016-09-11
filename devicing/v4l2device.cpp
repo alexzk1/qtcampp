@@ -273,7 +273,7 @@ v4l2device::device_formats_t v4l2device::listFormats(__u32 type)
     return res;
 }
 
-bool v4l2device::cameraStartInput()
+bool v4l2device::startCameraInput()
 {
 
     bool res = false;
