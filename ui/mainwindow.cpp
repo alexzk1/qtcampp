@@ -344,10 +344,13 @@ void MainWindow::launchVideoCap()
         if (dev && !dev->isCameraRunning())
         {
             doASnap = false;
-            dev->cameraInput(std::bind(&MainWindow::camera_input, this, std::placeholders::_1,
-                                       std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6),
-                             (GREYSCALE)?V4L2_PIX_FMT_GREY:V4L2_PIX_FMT_RGB24);
-            //(GREYSCALE)?V4L2_PIX_FMT_Y16_BE:V4L2_PIX_FMT_RGB24);
+
+            frame_listener_ptr ptr(new frame_listener(std::bind(&MainWindow::camera_input, this, std::placeholders::_1,
+                                                                std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6),
+                                                      (GREYSCALE)?V4L2_PIX_FMT_GREY:V4L2_PIX_FMT_RGB24));
+
+            dev->setNamedListener("picout", ptr);
+            dev->cameraStartInput();
         }
     }
 }

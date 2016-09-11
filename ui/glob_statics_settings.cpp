@@ -30,9 +30,9 @@ const StaticSettingsMap &StaticSettingsMap::getGlobalSetts()
                                             tr("It is used if \"Check Device Pereodically\" is enabled.\nLower (faster) values may lower FPS."),
                                             1, 60),
 
-                                            DECL_SETT(GlobalStorableBool, "CustomYUYV", false, tr("Custom YUYV conversion."),
-                                            tr("If enabled and camera uses YUVY format it will use custom conversion instead of v4lutils lib,\n"
-                                            "which shoud avoid applying auto-gain etc.\nMay be helpfull to picture bright objects on dark back like planets over telescope.")),
+//                                            DECL_SETT(GlobalStorableBool, "CustomYUYV", false, tr("Custom YUYV conversion."),
+//                                            tr("If enabled and camera uses YUVY format it will use custom conversion instead of v4lutils lib,\n"
+//                                            "which shoud avoid applying auto-gain etc.\nMay be helpfull to picture bright objects on dark back like planets over telescope.")),
 
                                             //such a tricky "Wp_" key will place it visually after "WorkingFolder"
                                             DECL_SETT(GlobalComboBoxStorable, "Wp0SingleShotFormat", 0, tr("Single Short Saving Format"),

@@ -17,7 +17,7 @@
 
 #include "v4l2device.h"
 
-#include <libv4lconvert.h>
+
 
 const static int lostDevicePauseMs    = 150; //sleep of the thread when device is lost/does errors
 const static uint64_t deviceTestEachNLoops = 1000; //not too often check if we didnt miss device yet
@@ -27,12 +27,9 @@ const static uint64_t deviceTestEachNLoops = 1000; //not too often check if we d
 #pragma message ("Enabled QTCAMPP")
 #include "ui/globalsettings.h"
 #define BUFFERS_AMOUNT (StaticSettingsMap::getGlobalSetts().readInt("VideoBuffs"))
-#define CUSTOM_YUVY (StaticSettingsMap::getGlobalSetts().readBool("CustomYUYV"))
 #else
 //standalone, stl solution, maybe used elsewhere
 #define BUFFERS_AMOUNT 10
-#define CUSTOM_YUVY false
-#define RGB_COEF false
 #endif
 
 #define FATAL_RISE(TEXT) throw v4l2device::v4l2device_excp(std::string(TEXT)+"\n\tat "+std::string(__FILE__)+": "+std::to_string(__LINE__))
@@ -276,28 +273,22 @@ v4l2device::device_formats_t v4l2device::listFormats(__u32 type)
     return res;
 }
 
-bool v4l2device::cameraInput(const frame_receiver& receiver, __u32 pixelFormatReceiver)
+bool v4l2device::cameraStartInput()
 {
-    using TimeT = std::chrono::milliseconds;
 
     bool res = false;
     if (is_valid_yet() && !m_thread)
     {
-        m_thread.reset(new std::thread([this, receiver, pixelFormatReceiver]()
+        m_thread.reset(new std::thread([this]()
         {
             //thread function
             bool lostDevice = true;
             buffers_t buffers;
             v4l2_buffer cam_buf;
-
-            v4l2_format srcFormat, destFormat;
-            std::shared_ptr<v4lconvert_data> converter(nullptr);
-            std::vector<uint8_t> destBuffer;
-
+            v4l2_format srcFormat;
 
             //cleansing structs, guess driver will change only some bits
             memset(&srcFormat,  0, sizeof(v4l2_format));
-            memset(&destFormat, 0, sizeof(v4l2_format));
             memset(&cam_buf,    0, sizeof(v4l2_buffer));
 
 
@@ -305,10 +296,6 @@ bool v4l2device::cameraInput(const frame_receiver& receiver, __u32 pixelFormatRe
             cam_buf.type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
             cam_buf.memory = V4L2_MEMORY_MMAP;
             uint64_t loopCounter = 0;
-            auto  start = std::chrono::steady_clock::now();
-
-            bool useCustomConversion  = CUSTOM_YUVY;
-
 
             //device maybe busy, especially at the startup + i7 cpu, so need to wait some if driver says so
             //not really sure what will happen if cable will be disconnected exatly inside loop
@@ -332,6 +319,7 @@ bool v4l2device::cameraInput(const frame_receiver& receiver, __u32 pixelFormatRe
                 return co;
             };
 
+
             while (interruptor)
             {
 
@@ -339,33 +327,22 @@ bool v4l2device::cameraInput(const frame_receiver& receiver, __u32 pixelFormatRe
                 {
                     if (!(lostDevice = create_buffers(buffers) < 1))
                     {
-                        converter.reset(v4lconvert_create(fd()), [](v4lconvert_data* p)
+                        //initConverter
+                        sourcePixelFormatChanged = false;
+                        for (auto& b : buffers) //enqueue all buffers
+                            busy_wait(VIDIOC_QBUF, b->buf);
+                        cam_buf.type   = buffers.at(0)->buf.type;
+                        cam_buf.memory = buffers.at(0)->buf.memory;
+                        get_fmt_cap(cam_buf.type, srcFormat);
+
+                        lostDevice = true;
+                        namedListeners.for_each([this, &srcFormat, &lostDevice](listeners_holder_t::ForEachT& p)
                         {
-                            if (p)
-                                v4lconvert_destroy(p);
+                            p.second->initConverter(fd(), srcFormat);
+                            lostDevice &= !p.second->isInitialized();
                         });
-                        if (converter)
-                        {
-                            sourcePixelFormatChanged = false;
-                            for (auto& b : buffers) //enqueue all buffers
-                                busy_wait(VIDIOC_QBUF, b->buf);
-                            cam_buf.type   = buffers.at(0)->buf.type;
-                            cam_buf.memory = buffers.at(0)->buf.memory;
-
-                            get_fmt_cap(cam_buf.type, srcFormat);
-                            useCustomConversion &= srcFormat.fmt.pix.pixelformat & 1448695129; // my webcam uses this
-                            useCustomConversion &= (V4L2_PIX_FMT_RGB24 == pixelFormatReceiver);
-
-                            destFormat = srcFormat;
-                            destFormat.fmt.pix.pixelformat = pixelFormatReceiver;
-                            v4lconvert_try_format(converter.get(), &destFormat, nullptr);
-                            destBuffer.reserve(destFormat.fmt.pix.sizeimage); //lib properly calculates buffer size in my case
-                            destBuffer.resize(destBuffer.capacity(), 0);
-
+                        if (!lostDevice)
                             streamon(cam_buf.type);
-                        }
-                        else
-                            lostDevice = true;
                     }
                 }
 
@@ -379,87 +356,20 @@ bool v4l2device::cameraInput(const frame_receiver& receiver, __u32 pixelFormatRe
                     {
                         const auto& buf = buffers.at(cam_buf.index);
 
-                        if (!(cam_buf.flags & V4L2_BUF_FLAG_ERROR) && converter)
+                        if (!(cam_buf.flags & V4L2_BUF_FLAG_ERROR))
                         {
-                            int size = static_cast<int>(destBuffer.size());
-                            //done: custom conversion added for "try to send data from camera as is to qt - so maybe ...autogain is done by converter..."
-                            if (!useCustomConversion)
-                                size = v4lconvert_convert(converter.get(), &srcFormat,
-                                                          &destFormat, buf->memory, static_cast<int>(buf->mem_len), destBuffer.data(), static_cast<int>(destBuffer.size()));
-                            else
+                            namedListeners.for_each([this, &srcFormat, &buf, &lostDevice](listeners_holder_t::ForEachT& p)
                             {
-                                //from here http://stackoverflow.com/questions/9098881/convert-from-yuv-to-rgb-in-c-android-ndk
-                                int y;
-                                int cr;
-                                int cb;
-
-                                double r;
-                                double g;
-                                double b;
-                                auto color_correction = [&r, &g, &b]()
-                                {
-                                    //This prevents colour distortions in your rgb image
-
-                                    if (r < 0) r = 0;
-                                    else if (r > 255) r = 255;
-                                    if (g < 0) g = 0;
-                                    else if (g > 255) g = 255;
-                                    if (b < 0) b = 0;
-                                    else if (b > 255) b = 255;
-                                };
-
-                                for (size_t i = 0, j = 0, sz = destBuffer.size(); i < sz; i+=6, j+=4)
-                                {
-                                    //first pixel
-                                    y =  buf->memory[j];
-                                    cb = buf->memory[j+1];
-                                    cr = buf->memory[j+3];
-
-
-
-                                    r = y + (1.4065 * (cr - 128));
-                                    g = y - (0.3455 * (cb - 128)) - (0.7169 * (cr - 128));
-                                    b = y + (1.7790 * (cb - 128));
-                                    color_correction();
-
-                                    destBuffer[i + 0] = static_cast<uint8_t>(r);
-                                    destBuffer[i + 1] = static_cast<uint8_t>(g);
-                                    destBuffer[i + 2] = static_cast<uint8_t>(b);
-
-                                    //second pixel
-                                    y =  buf->memory[j+2];
-                                    cb = buf->memory[j+1];
-                                    cr = buf->memory[j+3];
-
-
-                                    r = y + (1.4065 * (cr - 128));
-                                    g = y - (0.3455 * (cb - 128)) - (0.7169 * (cr - 128));
-                                    b = y + (1.7790 * (cb - 128));
-                                    color_correction();
-
-                                    destBuffer[i + 3] = static_cast<uint8_t>(r);
-                                    destBuffer[i + 4] = static_cast<uint8_t>(g);
-                                    destBuffer[i + 5] = static_cast<uint8_t>(b);
-                                }
-                            }
-                            if (size > -1)
                                 try
-                            {
-                                auto duration = std::chrono::duration_cast< TimeT>  (std::chrono::steady_clock::now() - start);
-                                start = std::chrono::steady_clock::now();
-
-                                //be aware that we output pure pixels there, so listener must add proper headers to load as image
-
-                                receiver(destFormat.fmt.pix.width, destFormat.fmt.pix.height, destBuffer.data(),
-                                         static_cast<size_t>(size), duration.count(), destFormat.fmt.pix.pixelformat);
-
-                            } catch (...)
-                            {
-                                std::cerr << "Exception in call to supply data." <<std::endl;
-                                lostDevice = true;
-                            }
-                            else
-                            std::cerr << v4lconvert_get_error_message(converter.get()) <<std::endl;
+                                {
+                                    p.second->setNextFrame(srcFormat, buf->memory, buf->mem_len);
+                                }
+                                catch (...)
+                                {
+                                    std::cerr << "Exception in call to supply data." <<std::endl;
+                                    lostDevice = true;
+                                }
+                            });
                         }
 
                         cam_buf.flags = cam_buf.reserved = 0;
@@ -531,6 +441,11 @@ void v4l2device::stopCameraInput()
 bool v4l2device::isCameraRunning()
 {
     return m_thread != nullptr;
+}
+
+void v4l2device::setNamedListener(const std::string &name, const frame_listener_ptr &listener)
+{
+    namedListeners.set(name, listener);
 }
 
 bool v4l2device::querycap(v4l2_capability &cap) const

@@ -18,6 +18,8 @@
 #include <functional>
 #include <stdint.h>
 #include "auto_closable.h"
+#include "frame_listener.h"
+#include "guardeds.h"
 
 #include <linux/videodev2.h>
 
@@ -89,7 +91,6 @@ public:
     using interruptor_ptr     = std::shared_ptr<interruptor_t>;
     using input_thread_ptr    = std::shared_ptr<std::thread>;
     using buffers_t           = std::vector<mmapped_buffer_ptr>;
-    using frame_receiver      = std::function<void (__u32 w, __u32 h, const uint8_t* memory, size_t length,  int64_t ms_per_frame, __u32 format)>;
 protected:
     using dev_hndl   = auto_closable<int>;
     using dev_hndl_p = std::shared_ptr<dev_hndl>;
@@ -101,6 +102,8 @@ private:
     interruptor_t interruptor;
     input_thread_ptr m_thread;
     std::atomic<bool> sourcePixelFormatChanged;
+    using listeners_holder_t = guarded_map<std::string, frame_listener_ptr>;
+    listeners_holder_t namedListeners;
 protected:
     int     fd() const;
     bool    querycap(v4l2_capability &cap) const;
@@ -146,10 +149,12 @@ public:
 
 
     //multithreaded camera capturing, setting
-    bool cameraInput(const frame_receiver &receiver, __u32 pixelFormat = V4L2_PIX_FMT_RGB24);
+    bool cameraStartInput();
     int setSourcePixelFormat( __u32 frm, __u32 type = V4L2_BUF_TYPE_VIDEO_CAPTURE);
     void stopCameraInput();
     bool isCameraRunning();
+
+    void setNamedListener(const std::string& name, const frame_listener_ptr& listener); //2nd parameter as nullptr will remove it
 };
 
 
