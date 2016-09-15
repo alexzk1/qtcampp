@@ -36,6 +36,11 @@ private:
     AVFramePtr               frame;
     FrameBuf                 picture_buf;
     std::atomic<bool>        finished;
+
+    SwsContext *img_convert_ctx;
+
+    uint64_t summMs;
+    uint64_t framesCounted;
 protected:
     VideoOutFile() = delete;
     VideoOutFile(const VideoOutFile&) = delete;

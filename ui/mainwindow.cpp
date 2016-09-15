@@ -24,6 +24,18 @@
 
 static const QString nightScheme = "QWidget {background-color: #660000;}";
 
+//should be same order as DECL_SETT(GlobalComboBoxStorable, "Wp0VideoFormat", 0, tr("Video Compression Format"),
+static const std::vector<AVCodecID> VideoCodexList{
+    AV_CODEC_ID_RAWVIDEO,
+    AV_CODEC_ID_PNG,
+    AV_CODEC_ID_HUFFYUV,
+    AV_CODEC_ID_H264,
+    AV_CODEC_ID_CYUV,
+    AV_CODEC_ID_MSRLE,
+    AV_CODEC_ID_MJPEG,
+    AV_CODEC_ID_VP8,
+};
+
 #define GREYSCALE StaticSettingsMap::getGlobalSetts().readBool<true>("Use_greyscale")
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -293,6 +305,7 @@ void MainWindow::relistIfLost()
 
         if (needRelist)
         {
+            ui->actionVideo_Record->setChecked(false);
             on_actionSelect_Camera_triggered(true);
             if (lastSubaction)
             {
@@ -351,7 +364,7 @@ void MainWindow::launchVideoCap()
 
             frame_listener_ptr ptr(new frame_listener(std::bind(&MainWindow::camera_input, this, std::placeholders::_1,
                                                                 std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6),
-                                                      (GREYSCALE)?V4L2_PIX_FMT_GREY:V4L2_PIX_FMT_RGB24));
+                                                      (GREYSCALE)?V4L2_PIX_FMT_YUYV:V4L2_PIX_FMT_RGB24));
 
             dev->setNamedListener("picout", ptr);
             dev->startCameraInput();
@@ -381,7 +394,7 @@ void MainWindow::camera_input(__u32 w, __u32 h, const uint8_t *mem, size_t size,
             pm = f->addFrame(pm, size, w, h).data();
 #endif
     }
-    if (GREYSCALE)
+    if (GREYSCALE) //manual conversion to greyscale if driver cant do that
         frame.set_data_grey8bit(w, h, pm, size);
     else
         frame.set_data(w, h, pm, size);
@@ -437,6 +450,7 @@ void MainWindow::on_actionSettings_triggered()
     d.exec();
 
     //reapplying settings
+
     forceRelist();
     pereodicTestRunStop();
 
@@ -519,12 +533,20 @@ void MainWindow::on_actionVideo_Record_toggled(bool checked)
         {
             if (checked)
             {
-                lastVideo = VideoOutFile::createVideoOutFile("/home/alex/test.avi", AV_CODEC_ID_RAWVIDEO);
-                auto fmts = dev->listFormats();
-                dev->setNamedListener("video", lastVideo->createListener(fmts.at(0).pixelformat, [this](const std::string& msg)
+                auto codec = VideoCodexList.at(static_cast<size_t>(StaticSettingsMap::getGlobalSetts().readInt("Wp0VideoFormat")));
+                //bool israw = AV_CODEC_ID_RAWVIDEO == codec;
+
+                auto fn = QString("%1/%2").arg(savingPath(-1)).arg(genFileName(false));
+                lastVideo = VideoOutFile::createVideoOutFile(fn.toStdString(), codec);
+
+                //fixme: other compression formats like MP4 will need additional pixel format conversions
+                //dev->setNamedListener("video", lastVideo->createListener((israw)?lastPropPane->getSelectedDevicePixelFormat():V4L2_PIX_FMT_RGB24,
+                dev->setNamedListener("video", lastVideo->createListener(lastPropPane->getSelectedDevicePixelFormat(),
+                                                                         [this](const std::string& msg)
                 {
                     emit signalVideoError(msg.c_str());
                 }));
+                statusBar()->showMessage(tr("Recording video..."), 5000);
             }
             else
             {

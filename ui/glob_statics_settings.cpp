@@ -2,6 +2,7 @@
 
 #include "globalsettings.h"
 #include <linux/videodev2.h>
+#include "video/video_inc.h"
 
 #define DECL_SETT(CLASS,KEY,DEF,args...) {KEY, widgetted_pt(new CLASS(KEY,DEF,args))}
 //-----------------------------------------------------------------------------------------------------------------------
@@ -30,10 +31,6 @@ const StaticSettingsMap &StaticSettingsMap::getGlobalSetts()
                                             tr("It is used if \"Check Device Pereodically\" is enabled.\nLower (faster) values may lower FPS."),
                                             1, 60),
 
-//                                            DECL_SETT(GlobalStorableBool, "CustomYUYV", false, tr("Custom YUYV conversion."),
-//                                            tr("If enabled and camera uses YUVY format it will use custom conversion instead of v4lutils lib,\n"
-//                                            "which shoud avoid applying auto-gain etc.\nMay be helpfull to picture bright objects on dark back like planets over telescope.")),
-
                                             //such a tricky "Wp_" key will place it visually after "WorkingFolder"
                                             DECL_SETT(GlobalComboBoxStorable, "Wp0SingleShotFormat", 0, tr("Single Short Saving Format"),
                                             tr("Sets format used to output single captured frame."),[](QStringList& s, QVariantList& v)
@@ -45,6 +42,23 @@ const StaticSettingsMap &StaticSettingsMap::getGlobalSetts()
                                                     "JPEG Compressed",
                                                 }; //related is MainWindow::saveSnapshoot
                                             }),
+                                            DECL_SETT(GlobalComboBoxStorable, "Wp0VideoFormat", 0, tr("Video Compression Format"),
+                                            tr("Sets format used to compress video."),[](QStringList& s, QVariantList& v)
+                                            {
+                                                Q_UNUSED(v);
+                                                s = QStringList{
+                                                    "Raw camera's data",
+                                                    "PNG loseless",
+                                                    "HUFFYUV loseless",
+                                                    "H264 loseless",
+                                                    "CreativeLabs YUV",
+                                                    "Microsoft RLE",
+                                                    "MJPEG compressed",
+                                                    "VP8 compressed",
+                                                };
+                                                //if changed list, fix MainWindow.cpp
+                                            }),
+
                                             DECL_SETT(GlobalStorableInt, "Wp0SeriesLen", 30, tr("Amount of shoots in series."),
                                             tr("Defines length of sequentally stored frames on single button press.\n"
                                             "On fastest CPUs/SSDs it is limited by FPS (i.e. 30FPS will give 30 different shoots at most).\n"
@@ -56,7 +70,7 @@ const StaticSettingsMap &StaticSettingsMap::getGlobalSetts()
                                             "but rises \"motion lag\" as well. Bigger values maybe used on static objects. Consumes CPU."),
                                             0, 7),
 
-                                            DECL_SETT(GlobalStorableBool, "Use_greyscale", false, tr("Greyscale"), tr("If enabled does conversion to greyscale.")),
+                                            DECL_SETT(GlobalStorableBool, "Use_greyscale", false, tr("Greyscale"), tr("If enabled does conversion to greyscale of the pictures (not the videos).")),
                                         });
     return list;
 }

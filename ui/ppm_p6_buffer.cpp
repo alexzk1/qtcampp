@@ -65,7 +65,9 @@ void ppm_p6_buffer::set_data_grey8bit(uint32_t w, uint32_t h, const uint8_t *mem
         lastW = w;
         lastH = h;
         lastSize = size;
-        grey_step = std::max(static_cast<size_t>(1), lastSize / (w * h)); //my 64 bit v4l returns 16 bit instead 8bit for V4L2_PIX_FMT_GREY
+        grey_step = std::max(static_cast<size_t>(1), lastSize / (w * h));
+        //my 64 bit v4l returns 16 bit instead 8bit for V4L2_PIX_FMT_GREY
+        //(upd: it returns yuv2 yet - no conversion, updated source to V4L2_PIX_FMT_YUYV so this function will be working)
     }
     setBuffer(had_change, mem, size, grey_step);
 }

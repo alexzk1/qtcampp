@@ -8,7 +8,7 @@
 #include <QLabel>
 #include <vector>
 #include <map>
-
+#include <stdint.h>
 
 #include "saveable_widget.h"
 #include "devicing/v4l2device.h"
@@ -27,6 +27,7 @@ protected:
     wlist_t holder; //holds all objects until this is destroyed
     v4l2device_ptr currDevice;
     controls_t controls;
+    std::atomic<uint32_t> currentPixelFormatSelected;
 private:
     const QString settings_group;
     QPointer<QLabel> presetLbl;
@@ -46,7 +47,7 @@ public:
     v4l2device_ptr getCurrDevice() const;
 
     QStringList readAllValues() const;
-
+    uint32_t getSelectedDevicePixelFormat(){return currentPixelFormatSelected;}
 signals:
     void deviceDisconnected();
     void deviceRestored();

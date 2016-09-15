@@ -7,4 +7,4 @@ SOURCES += \
     $$PWD/videooutfile.cpp
 
 
-LIBS += -lavutil -lavcodec -lavformat
+LIBS += -lavutil -lavcodec -lavformat -lswscale

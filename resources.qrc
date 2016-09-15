@@ -14,5 +14,6 @@
     </qresource>
     <qresource prefix="/">
         <file>icons/Very-Basic-Filter-Filled-icon.png</file>
+        <file>icons/movies_icon.png</file>
     </qresource>
 </RCC>

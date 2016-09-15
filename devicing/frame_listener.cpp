@@ -35,8 +35,9 @@ void frame_listener::setNextFrame(const v4l2_format& srcFormat, const uint8_t* m
         if (size > -1)
 
         {
-            auto duration = std::chrono::duration_cast< TimeT>  (std::chrono::steady_clock::now() - start);
-            start = std::chrono::steady_clock::now();
+            auto nw = std::chrono::steady_clock::now();
+            auto duration = std::chrono::duration_cast< TimeT>  (nw - start);
+            start = nw;
 
             //be aware that we output pure pixels there, so listener must add proper headers to load as image
             callback(destFormat.fmt.pix.width, destFormat.fmt.pix.height, destBuffer.data(),

@@ -235,7 +235,8 @@ void DeviceProperties::listFormats()
     if (fmts.size())
     {
         widgetted_pt ptr;
-        ptr.reset(new GlobalComboBoxStorable("video_format", 0, tr("Input Video Format"), tr("Video Format(s) supported and used by camera."),
+        GlobalComboBoxStorable *tmp;
+        ptr.reset(tmp = new GlobalComboBoxStorable("video_format", 0, tr("Input Video Format"), tr("Video Format(s) supported and used by camera."),
                                              [fmts](QStringList& s, QVariantList& v)
         {
                       for (const auto& f: fmts)
@@ -248,6 +249,7 @@ void DeviceProperties::listFormats()
         holder[FORMAT_WIDGET_ID] = ptr;
         widgetted_ptw wp = ptr;
 
+        currentPixelFormatSelected = static_cast<__u32>(0xFFFFFFFF & tmp->getUserData().toLongLong());
         connect(ptr.get(), &ISaveableWidget::valueChanged, this, [this, wp]()
         {
             auto p = wp.lock();
@@ -256,6 +258,7 @@ void DeviceProperties::listFormats()
             if (cb)
             {
                 __u32 val = static_cast<__u32>(0xFFFFFFFF & cb->getUserData().toLongLong());
+                currentPixelFormatSelected = val;
                 //push to device
                 if (currDevice)
                     currDevice->setSourcePixelFormat(val);

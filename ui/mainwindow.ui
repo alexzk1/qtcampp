@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1038</width>
+    <width>1110</width>
     <height>551</height>
    </rect>
   </property>
@@ -42,7 +42,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>111</width>
+          <width>119</width>
           <height>451</height>
          </rect>
         </property>
@@ -62,7 +62,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1038</width>
+     <width>1110</width>
      <height>21</height>
     </rect>
    </property>
@@ -311,8 +311,12 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="icon">
+    <iconset resource="../resources.qrc">
+     <normaloff>:/icons/movies_icon.png</normaloff>:/icons/movies_icon.png</iconset>
+   </property>
    <property name="text">
-    <string>Video Record</string>
+    <string>&amp;Video Record</string>
    </property>
    <property name="toolTip">
     <string>Start / stop video capturing</string>
