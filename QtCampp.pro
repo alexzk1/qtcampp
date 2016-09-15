@@ -16,9 +16,12 @@ CONFIG(debug)
    DEFINES += _DEBUG
 }
 
+INCLUDEPATH += $$PWD
+
 include(./libusb/libusb.pri)
 include(./devicing/devicing.pri)
 include (./ui/ui.pri)
+include (./video/video.pri)
 
 #comment include below to disable opencv filter (all "tools" actually) usage
 include (tools/tools.pri)
@@ -31,3 +34,6 @@ SOURCES += main.cpp
 
 RESOURCES += \
     resources.qrc
+
+HEADERS += \
+    utils.h

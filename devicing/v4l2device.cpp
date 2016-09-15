@@ -338,8 +338,11 @@ bool v4l2device::startCameraInput()
                         lostDevice = true;
                         namedListeners.for_each([this, &srcFormat, &lostDevice](listeners_holder_t::ForEachT& p)
                         {
-                            p.second->initConverter(fd(), srcFormat);
-                            lostDevice &= !p.second->isInitialized();
+                            if (p.second)
+                            {
+                                p.second->initConverter(fd(), srcFormat);
+                                lostDevice &= !p.second->isInitialized();
+                            }
                         });
                         if (!lostDevice)
                             streamon(cam_buf.type);
@@ -360,19 +363,22 @@ bool v4l2device::startCameraInput()
                         {
                             namedListeners.for_each([this, &srcFormat, &buf, &lostDevice](listeners_holder_t::ForEachT& p)
                             {
-                                try
+                                if (p.second)
                                 {
-                                    //trying to init converter if it was added while everything is running already
-                                    if (!p.second->isInitialized())
+                                    try
                                     {
-                                        p.second->initConverter(fd(), srcFormat);
+                                        //trying to init converter if it was added while everything is running already
+                                        if (!p.second->isInitialized())
+                                        {
+                                            p.second->initConverter(fd(), srcFormat);
+                                        }
+                                        p.second->setNextFrame(srcFormat, buf->memory, buf->mem_len);
                                     }
-                                    p.second->setNextFrame(srcFormat, buf->memory, buf->mem_len);
-                                }
-                                catch (...)
-                                {
-                                    std::cerr << "Exception in call to supply data." <<std::endl;
-                                    lostDevice = true;
+                                    catch (std::exception& e)
+                                    {
+                                        std::cerr << "Exception in call to supply data: " << e.what()<<std::endl;
+                                        lostDevice = true;
+                                    }
                                 }
                             });
                         }

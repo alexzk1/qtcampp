@@ -6,6 +6,7 @@
 #include <QStringList>
 
 #include "devicing/v4l2device.h"
+#include "video/videooutfile.h"
 
 int main(int argc, char *argv[])
 {
@@ -14,6 +15,8 @@ int main(int argc, char *argv[])
         QCoreApplication::setApplicationName("QtCamPP");
 
         QApplication a(argc, argv);
+        VideoOutFile::initVideoLibsOnce();
+
         MainWindow w;
         w.show();
 

@@ -10,6 +10,8 @@
 #include <QFile>
 #include <QTextStream>
 #include <QInputDialog>
+#include <QMessageBox>
+#include <QTimer>
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
@@ -114,6 +116,7 @@ MainWindow::MainWindow(QWidget *parent) :
     relistIfLost();
     pereodicTestRunStop();
     buildFilters();
+    connect(this, &MainWindow::signalVideoError, this, &MainWindow::resolveCrossThreadVideoError, Qt::QueuedConnection);
 }
 
 MainWindow::~MainWindow()
@@ -148,6 +151,7 @@ void MainWindow::recurseWrite(QSettings &settings, QObject *object)
     settings.setValue("splitter", ui->splitter->saveState());
     settings.setValue("mainwinstate", this->saveState());
 }
+
 
 void MainWindow::on_actionSelect_Camera_triggered(bool prefferStored)
 {
@@ -497,5 +501,41 @@ void MainWindow::on_actionNaming_triggered()
         lastNaming = text;
         if (namingLabel)
             namingLabel->setText(tr("Naming: \"%1\"").arg(text));
+    }
+}
+
+void MainWindow::resolveCrossThreadVideoError(const QString msg)
+{
+    ui->actionVideo_Record->setChecked(false);
+    QMessageBox::critical(this, windowTitle(), msg);
+}
+
+void MainWindow::on_actionVideo_Record_toggled(bool checked)
+{
+    if (lastPropPane)
+    {
+        auto dev = lastPropPane->getCurrDevice();
+        if (dev)
+        {
+            if (checked)
+            {
+                lastVideo = VideoOutFile::createVideoOutFile("/home/alex/test.avi", AV_CODEC_ID_RAWVIDEO);
+                auto fmts = dev->listFormats();
+                dev->setNamedListener("video", lastVideo->createListener(fmts.at(0).pixelformat, [this](const std::string& msg)
+                {
+                    emit signalVideoError(msg.c_str());
+                }));
+            }
+            else
+            {
+                lastVideo->recordDone();
+                dev->setNamedListener("video", nullptr);
+            }
+        }
+    }
+
+    if (!checked)
+    {
+        lastVideo.reset();
     }
 }

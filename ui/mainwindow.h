@@ -14,6 +14,7 @@
 #include "saveable_widget.h"
 #include "deviceproperties.h"
 #include "ppm_p6_buffer.h"
+#include "video/videooutfile.h"
 
 #ifdef CAMPP_TOOLS_USED
 #include "tools/onlinestacker.h"
@@ -40,6 +41,7 @@ protected:
     virtual void recurseRead(QSettings& settings, QObject* object) override;
     virtual void recurseWrite(QSettings& settings, QObject* object) override;
 private slots:
+    void resolveCrossThreadVideoError(const QString msg);
     void on_actionSelect_Camera_triggered(bool prefferStored = false);
 
     void on_actionApply_All_triggered();
@@ -61,8 +63,11 @@ private slots:
 
     void on_actionNaming_triggered();
 
+    void on_actionVideo_Record_toggled(bool checked);
+
 signals:
     void hasFrame(QPixmap pix, int64_t ms_per_frame); //used to resolve cross thread from puller to GUI
+    void signalVideoError(const QString msg);
 private:
     Ui::MainWindow *ui;
     void createStatusBar();
@@ -82,6 +87,7 @@ private:
 #ifdef CAMPP_TOOLS_USED
     std::vector<std::shared_ptr<ILiveFilter>> filters;
 #endif
+    VideoOutFilePtr lastVideo;
     void buildFilters();
 
 

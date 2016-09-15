@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>715</width>
+    <width>1038</width>
     <height>551</height>
    </rect>
   </property>
@@ -42,7 +42,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>75</width>
+          <width>111</width>
           <height>451</height>
          </rect>
         </property>
@@ -62,7 +62,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>715</width>
+     <width>1038</width>
      <height>21</height>
     </rect>
    </property>
@@ -74,6 +74,7 @@
     <addaction name="actionApply_All"/>
     <addaction name="actionReset"/>
     <addaction name="separator"/>
+    <addaction name="actionVideo_Record"/>
     <addaction name="actionSingleShoot"/>
     <addaction name="actionSeries_Shoot"/>
     <addaction name="separator"/>
@@ -119,6 +120,7 @@
    <addaction name="separator"/>
    <addaction name="actionSingleShoot"/>
    <addaction name="actionSeries_Shoot"/>
+   <addaction name="actionVideo_Record"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionSelect_Camera">
@@ -293,7 +295,7 @@
      <normaloff>:/icons/icons/name-card-icon.png</normaloff>:/icons/icons/name-card-icon.png</iconset>
    </property>
    <property name="text">
-    <string>Naming</string>
+    <string>&amp;Naming</string>
    </property>
    <property name="toolTip">
     <string>Adds some custom text to the file name.</string>
@@ -303,6 +305,20 @@
    </property>
    <property name="shortcutContext">
     <enum>Qt::ApplicationShortcut</enum>
+   </property>
+  </action>
+  <action name="actionVideo_Record">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Video Record</string>
+   </property>
+   <property name="toolTip">
+    <string>Start / stop video capturing</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+V</string>
    </property>
   </action>
  </widget>
