@@ -338,10 +338,11 @@ bool v4l2device::startCameraInput()
                         lostDevice = true;
                         namedListeners.for_each([this, &srcFormat, &lostDevice](listeners_holder_t::ForEachT& p)
                         {
-                            if (p.second)
+                            auto ps = std::dynamic_pointer_cast<frame_listener_v4l>(p.second);
+                            if (ps)
                             {
-                                p.second->initConverter(fd(), srcFormat);
-                                lostDevice &= !p.second->isInitialized();
+                                ps->initConverter(fd(), srcFormat);
+                                lostDevice &= !ps->isInitialized();
                             }
                         });
                         if (!lostDevice)
@@ -363,16 +364,17 @@ bool v4l2device::startCameraInput()
                         {
                             namedListeners.for_each([this, &srcFormat, &buf, &lostDevice](listeners_holder_t::ForEachT& p)
                             {
-                                if (p.second)
+                                auto ps = std::dynamic_pointer_cast<frame_listener_v4l>(p.second);
+                                if (ps)
                                 {
                                     try
                                     {
                                         //trying to init converter if it was added while everything is running already
-                                        if (!p.second->isInitialized())
+                                        if (!ps->isInitialized())
                                         {
-                                            p.second->initConverter(fd(), srcFormat);
+                                            ps->initConverter(fd(), srcFormat);
                                         }
-                                        p.second->setNextFrame(srcFormat, buf->memory, buf->mem_len);
+                                        ps->setNextFrame(srcFormat, buf->memory, buf->mem_len);
                                     }
                                     catch (std::exception& e)
                                     {
@@ -617,3 +619,4 @@ uint8_t *v4l2device::mmapped_buffer::do_map(int fd)
         memory = nullptr;
     return memory;
 }
+

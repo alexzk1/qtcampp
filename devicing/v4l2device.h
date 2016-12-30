@@ -18,7 +18,7 @@
 #include <functional>
 #include <stdint.h>
 #include "auto_closable.h"
-#include "frame_listener.h"
+#include "frame_listener_v4l.h"
 #include "guardeds.h"
 
 #include <linux/videodev2.h>
@@ -150,14 +150,11 @@ public:
 
     //multithreaded camera capturing, setting
     bool startCameraInput();
-    int setSourcePixelFormat( __u32 frm, __u32 type = V4L2_BUF_TYPE_VIDEO_CAPTURE);
+    int  setSourcePixelFormat( __u32 frm, __u32 type = V4L2_BUF_TYPE_VIDEO_CAPTURE);
     void stopCameraInput();
     bool isCameraRunning();
 
     void setNamedListener(const std::string& name, const frame_listener_ptr& listener); //2nd parameter as nullptr will remove it
 };
-
-
-
 
 #endif // V4L2DEVICE_H

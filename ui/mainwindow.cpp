@@ -362,7 +362,7 @@ void MainWindow::launchVideoCap()
         {
             doASnap = false;
 
-            frame_listener_ptr ptr(new frame_listener(std::bind(&MainWindow::camera_input, this, std::placeholders::_1,
+            frame_listener_ptr ptr(new frame_listener_v4l(std::bind(&MainWindow::camera_input, this, std::placeholders::_1,
                                                                 std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6),
                                                       (GREYSCALE)?V4L2_PIX_FMT_YUYV:V4L2_PIX_FMT_RGB24));
 

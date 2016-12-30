@@ -3,6 +3,8 @@
 
 //that ffmpeg is real mess .. google about it is even more
 //really ugly code below, sorry future readers ...
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
 extern "C"
 {
@@ -40,7 +42,7 @@ frame_listener_ptr VideoOutFile::createListener(uint32_t pixFormat, const std::f
 {
     //this lambda locks shared pointer, so until listener exists this object will exists too
     auto WThis = shared_from_this();
-    frame_listener_ptr listener(new frame_listener([WThis, callback_error](__u32 w, __u32 h, const uint8_t *mem, size_t size,
+    frame_listener_ptr listener(new frame_listener_v4l([WThis, callback_error](__u32 w, __u32 h, const uint8_t *mem, size_t size,
                                                    int64_t ms_per_frame, uint32_t pxl_format)
     {
         try
@@ -174,7 +176,7 @@ void VideoOutFile::prepareRecording(uint32_t w, uint32_t h, uint32_t pixFormat)
     auto pCodecCtx = pVideoStream->codec;
 
     auto fps = static_cast<int>(1000 * needFramesForFPS / summMs) + 1;
-    pVideoStream->time_base = (AVRational){ 1, fps};
+    pVideoStream->time_base = AVRational{ 1, fps};
     if (!pVideoStream)
     {
         avcodec_free_context(&pCodecCtx);
@@ -304,7 +306,6 @@ void VideoOutFile::camera_input(__u32 w, __u32 h, const uint8_t *mem, size_t siz
         }
 
         int got_packet = 0;
-        int out_size = 0;
         AVPacket pkt;
 
 
@@ -333,11 +334,16 @@ void VideoOutFile::camera_input(__u32 w, __u32 h, const uint8_t *mem, size_t siz
                 pkt.flags |= AV_PKT_FLAG_KEY;
 
             /* Write the compressed frame to the media file. */
-            out_size = av_write_frame(pFormatCtx.get(), &pkt);
+            av_write_frame(pFormatCtx.get(), &pkt);
             av_packet_unref(&pkt);
         }
         frame->pts += 1;//ms_per_frame;
     }
 }
 
-VideoOutFile::videoout_excp::~videoout_excp(){}
+VideoOutFile::videoout_excp::~videoout_excp()
+{
+
+}
+
+#pragma GCC diagnostic pop

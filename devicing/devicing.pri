@@ -1,14 +1,26 @@
 HEADERS += \
-    $$PWD/v4l2device.h \
     $$PWD/auto_closable.h \
-    $$PWD/frame_listener.h \
-    $$PWD/guardeds.h
+    $$PWD/guardeds.h \
+    $$PWD/video_camera.h \
+    $$PWD/frame_listener_base.h
 
 SOURCES += \
-    $$PWD/v4l2device.cpp \
-    $$PWD/frame_listener.cpp
+    $$PWD/video_camera.cpp \
+    $$PWD/frame_listener_base.cpp
 
-LIBS += -lv4l2 -lv4lconvert
+qtcampp{
+    DEFINES += QTCAMPP_PROJ #enables integration to other parts of projects, do not define for standalone usage of the device files
+}
 
-#enables integration to other parts of projects, do not define for standalone usage of the device files
-DEFINES += QTCAMPP_PROJ
+v4ldevices{
+HEADERS += \
+    $$PWD/frame_listener_v4l.h \
+    $$PWD/v4l2device.h
+
+SOURCES += \
+   $$PWD/frame_listener_v4l.cpp \
+   $$PWD/v4l2device.cpp
+
+    LIBS    += -lv4l2 -lv4lconvert
+    DEFINES += V4LDEVICES
+}

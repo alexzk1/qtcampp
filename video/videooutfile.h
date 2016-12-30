@@ -7,7 +7,7 @@
 #include <atomic>
 
 #include "video_inc.h"
-#include "devicing/frame_listener.h"
+#include "devicing/frame_listener_v4l.h"
 
 class VideoOutFile;
 using VideoOutFilePtr = std::shared_ptr<VideoOutFile>;
