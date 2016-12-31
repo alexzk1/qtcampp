@@ -37,7 +37,6 @@ const static uint64_t deviceTestEachNLoops = 1000; //not too often check if we d
 #define WRAPPER_NORET(FUNC, arg...) if (usingWrapper) ::v4l2_##FUNC(arg); else ::FUNC(arg)
 
 
-
 int v4l2device::fd() const
 {
     if (!m_fd)
@@ -279,145 +278,148 @@ v4l2device::device_formats_t v4l2device::listFormats(__u32 type)
 
 utility::runner_f_t v4l2device::getInputFunction()
 {
-    return [this](const utility::runnerint_t& should_stop)
+    using namespace std::placeholders;
+    return std::bind(&v4l2device::inputCameraFunction, this, _1);
+}
+
+void v4l2device::inputCameraFunction(const utility::runnerint_t &should_stop)
+{
+    auto interruptor = [should_stop]()
     {
-        auto interruptor = [should_stop]()
+        return !(*should_stop);
+    };
+
+    //thread function
+    bool lostDevice = true;
+    buffers_t buffers;
+    v4l2_buffer cam_buf;
+    v4l2_format srcFormat;
+
+    //cleansing structs, guess driver will change only some bits
+    memset(&srcFormat,  0, sizeof(v4l2_format));
+    memset(&cam_buf,    0, sizeof(v4l2_buffer));
+
+
+    //default values
+    cam_buf.type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+    cam_buf.memory = V4L2_MEMORY_MMAP;
+    uint64_t loopCounter = 0;
+
+    //device maybe busy, especially at the startup + i7 cpu, so need to wait some if driver says so
+    //not really sure what will happen if cable will be disconnected exatly inside loop
+    auto busy_wait = [this, &interruptor](__u32 code, v4l2_buffer& cam_buf) ->int
+    {
+        int co = 0;
+        while(interruptor())
         {
-           return !(*should_stop);
-        };
+            co = ioctl(code, &cam_buf);
 
-        //thread function
-        bool lostDevice = true;
-        buffers_t buffers;
-        v4l2_buffer cam_buf;
-        v4l2_format srcFormat;
+            if (co == -1)
+                co = errno;
+            else
+                break;
 
-        //cleansing structs, guess driver will change only some bits
-        memset(&srcFormat,  0, sizeof(v4l2_format));
-        memset(&cam_buf,    0, sizeof(v4l2_buffer));
+            if (co == EAGAIN)
+                std::this_thread::sleep_for(std::chrono::duration<int, std::milli>(10));
+            else
+                break;
+        }
+        return co;
+    };
 
 
-        //default values
-        cam_buf.type   = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-        cam_buf.memory = V4L2_MEMORY_MMAP;
-        uint64_t loopCounter = 0;
+    while (interruptor())
+    {
 
-        //device maybe busy, especially at the startup + i7 cpu, so need to wait some if driver says so
-        //not really sure what will happen if cable will be disconnected exatly inside loop
-        auto busy_wait = [this, &interruptor](__u32 code, v4l2_buffer& cam_buf) ->int
+        if (lostDevice)
         {
-            int co = 0;
-            while(interruptor())
+            if (!(lostDevice = create_buffers(buffers) < 1))
             {
-                co = ioctl(code, &cam_buf);
+                //initConverter
+                this->sourcePixelFormatChanged = false;
+                for (auto& b : buffers) //enqueue all buffers
+                    busy_wait(VIDIOC_QBUF, b->buf);
+                cam_buf.type   = buffers.at(0)->buf.type;
+                cam_buf.memory = buffers.at(0)->buf.memory;
+                get_fmt_cap(cam_buf.type, srcFormat);
 
-                if (co == -1)
-                    co = errno;
-                else
-                    break;
-
-                if (co == EAGAIN)
-                    std::this_thread::sleep_for(std::chrono::duration<int, std::milli>(10));
-                else
-                    break;
-            }
-            return co;
-        };
-
-
-        while (interruptor())
-        {
-
-            if (lostDevice)
-            {
-                if (!(lostDevice = create_buffers(buffers) < 1))
+                lostDevice = true;
+                namedListeners.for_each([this, &srcFormat, &lostDevice](listeners_holder_t::ForEachT& p)
                 {
-                    //initConverter
-                    this->sourcePixelFormatChanged = false;
-                    for (auto& b : buffers) //enqueue all buffers
-                        busy_wait(VIDIOC_QBUF, b->buf);
-                    cam_buf.type   = buffers.at(0)->buf.type;
-                    cam_buf.memory = buffers.at(0)->buf.memory;
-                    get_fmt_cap(cam_buf.type, srcFormat);
+                    auto ps = std::dynamic_pointer_cast<frame_listener_v4l>(p.second);
+                    if (ps)
+                    {
+                        ps->initConverter(fd(), srcFormat);
+                        lostDevice &= !ps->isInitialized();
+                    }
+                });
+                if (!lostDevice)
+                    streamon(cam_buf.type);
+            }
+        }
 
-                    lostDevice = true;
-                    namedListeners.for_each([this, &srcFormat, &lostDevice](listeners_holder_t::ForEachT& p)
+        if (!lostDevice)
+        {
+
+            int code = busy_wait(VIDIOC_DQBUF, cam_buf);
+            lostDevice = (code < 0);
+
+            if (!lostDevice && code != EAGAIN)
+            {
+                const auto& buf = buffers.at(cam_buf.index);
+
+                if (!(cam_buf.flags & V4L2_BUF_FLAG_ERROR))
+                {
+                    namedListeners.for_each([this, &srcFormat, &buf, &lostDevice](listeners_holder_t::ForEachT& p)
                     {
                         auto ps = std::dynamic_pointer_cast<frame_listener_v4l>(p.second);
                         if (ps)
                         {
-                            ps->initConverter(fd(), srcFormat);
-                            lostDevice &= !ps->isInitialized();
+                            try
+                            {
+                                //trying to init converter if it was added while everything is running already
+                                if (!ps->isInitialized())
+                                {
+                                    ps->initConverter(fd(), srcFormat);
+                                }
+                                ps->setNextFrame(srcFormat, buf->memory, buf->mem_len);
+                            }
+                            catch (std::exception& e)
+                            {
+                                std::cerr << "Exception in call to supply data: " << e.what()<<std::endl;
+                                lostDevice = true;
+                            }
                         }
                     });
-                    if (!lostDevice)
-                        streamon(cam_buf.type);
                 }
-            }
 
-            if (!lostDevice)
-            {
-
-                int code = busy_wait(VIDIOC_DQBUF, cam_buf);
+                cam_buf.flags = cam_buf.reserved = 0;
+                code = busy_wait(VIDIOC_QBUF, cam_buf);
                 lostDevice = (code < 0);
-
-                if (!lostDevice && code != EAGAIN)
-                {
-                    const auto& buf = buffers.at(cam_buf.index);
-
-                    if (!(cam_buf.flags & V4L2_BUF_FLAG_ERROR))
-                    {
-                        namedListeners.for_each([this, &srcFormat, &buf, &lostDevice](listeners_holder_t::ForEachT& p)
-                        {
-                            auto ps = std::dynamic_pointer_cast<frame_listener_v4l>(p.second);
-                            if (ps)
-                            {
-                                try
-                                {
-                                    //trying to init converter if it was added while everything is running already
-                                    if (!ps->isInitialized())
-                                    {
-                                        ps->initConverter(fd(), srcFormat);
-                                    }
-                                    ps->setNextFrame(srcFormat, buf->memory, buf->mem_len);
-                                }
-                                catch (std::exception& e)
-                                {
-                                    std::cerr << "Exception in call to supply data: " << e.what()<<std::endl;
-                                    lostDevice = true;
-                                }
-                            }
-                        });
-                    }
-
-                    cam_buf.flags = cam_buf.reserved = 0;
-                    code = busy_wait(VIDIOC_QBUF, cam_buf);
-                    lostDevice = (code < 0);
-                }
             }
-
-            //not too often check if we didnt miss device yet
-            if (++loopCounter % deviceTestEachNLoops == 0)
-                lostDevice = lostDevice || !is_valid_yet();
-
-            if (lostDevice || sourcePixelFormatChanged)
-            {
-                //lets close full subsystem, maybe it will be long to re-init it back, but ...
-
-                streamoff(cam_buf.type);
-                free_buffers(buffers);
-                if (lostDevice)
-                {
-                    std::cerr << "Lost device ...sleeping, restarting all." <<std::endl;
-                    std::this_thread::sleep_for(std::chrono::duration<decltype (lostDevicePauseMs), std::milli>(lostDevicePauseMs));
-                }
-            }
-            lostDevice |= sourcePixelFormatChanged;
         }
-        streamoff(cam_buf.type);
-        free_buffers(buffers);
 
-    };
+        //not too often check if we didnt miss device yet
+        if (++loopCounter % deviceTestEachNLoops == 0)
+            lostDevice = lostDevice || !is_valid_yet();
+
+        if (lostDevice || sourcePixelFormatChanged)
+        {
+            //lets close full subsystem, maybe it will be long to re-init it back, but ...
+
+            streamoff(cam_buf.type);
+            free_buffers(buffers);
+            if (lostDevice)
+            {
+                std::cerr << "Lost device ...sleeping, restarting all." <<std::endl;
+                std::this_thread::sleep_for(std::chrono::duration<decltype (lostDevicePauseMs), std::milli>(lostDevicePauseMs));
+            }
+        }
+        lostDevice |= sourcePixelFormatChanged;
+    }
+    streamoff(cam_buf.type);
+    free_buffers(buffers);
+
 }
 
 int v4l2device::setSourcePixelFormat(__u32 frm, __u32 type)

@@ -96,7 +96,7 @@ private:
     bool usingWrapper;
     v4l2_capability m_capability;
     std::atomic<bool> sourcePixelFormatChanged;
-
+    void inputCameraFunction(const utility::runnerint_t& should_stop);
 protected:
     int     fd() const;
     bool    querycap(v4l2_capability &cap) const;

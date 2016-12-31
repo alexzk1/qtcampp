@@ -12,7 +12,6 @@ private:
 protected:
     using listeners_holder_t = guarded_map<std::string, frame_listener_ptr>;
     listeners_holder_t namedListeners;
-
     virtual utility::runner_f_t getInputFunction() = 0;
 public:
     video_camera();
