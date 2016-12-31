@@ -8,7 +8,7 @@ QT       += core gui
 
 CONFIG += qtcampp    #enabling gui integration of subprojects
 CONFIG += v4ldevices #comment out to disable usage of v4l
-
+CONFIG += ptpdevices #enables ptp cameras
 
 QMAKE_CXXFLAGS += -std=c++11 -Wall -Werror=strict-aliasing -fstrict-aliasing -Wctor-dtor-privacy -Werror=delete-non-virtual-dtor
 QMAKE_CXXFLAGS += -fexceptions -Werror=return-type -Werror=overloaded-virtual

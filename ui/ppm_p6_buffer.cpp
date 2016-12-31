@@ -46,7 +46,7 @@ void ppm_p6_buffer::set_data(uint32_t w, uint32_t h, const uint8_t *mem, size_t 
     bool had_change = false;
     if (lastW != w || lastH != h || lastSize != size)
     {
-        header = utils::string_format("P6\n%u %u\n255\n", w, h);
+        header = utility::string_format("P6\n%u %u\n255\n", w, h);
         had_change = true;
         lastW = w;
         lastH = h;
@@ -60,7 +60,7 @@ void ppm_p6_buffer::set_data_grey8bit(uint32_t w, uint32_t h, const uint8_t *mem
     bool had_change = false;
     if (lastW != w || lastH != h || lastSize != size)
     {
-        header = utils::string_format("P5\n%u %u\n255\n", w, h);
+        header = utility::string_format("P5\n%u %u\n255\n", w, h);
         had_change = true;
         lastW = w;
         lastH = h;
@@ -88,7 +88,7 @@ void ppm_p6_buffer::set_data_p7(uint32_t w, uint32_t h, const uint8_t *mem, size
     {
         const auto& v = formats.at(v4lformat);
 
-        header = utils::string_format("P7\nWIDTH %u\nHEIGHT %u\nDEPTH %u\nMAXVAL %u\nTUPLTYPE %s\nENDHDR\n", w, h, std::get<1>(v), std::get<2>(v), std::get<0>(v).c_str());
+        header = utility::string_format("P7\nWIDTH %u\nHEIGHT %u\nDEPTH %u\nMAXVAL %u\nTUPLTYPE %s\nENDHDR\n", w, h, std::get<1>(v), std::get<2>(v), std::get<0>(v).c_str());
         had_change = true;
         lastW = w;
         lastH = h;

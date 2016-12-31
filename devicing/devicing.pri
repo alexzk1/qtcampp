@@ -2,7 +2,10 @@ HEADERS += \
     $$PWD/auto_closable.h \
     $$PWD/guardeds.h \
     $$PWD/video_camera.h \
-    $$PWD/frame_listener_base.h
+    $$PWD/frame_listener_base.h \
+    $$PWD/runners.h \
+    $$PWD/union_cast.h \
+    $$PWD/no_const.h
 
 SOURCES += \
     $$PWD/video_camera.cpp \
@@ -23,4 +26,8 @@ SOURCES += \
 
     LIBS    += -lv4l2 -lv4lconvert
     DEFINES += V4LDEVICES
+}
+
+ptpdevices{
+    DEFINES += PTPDEVICES
 }

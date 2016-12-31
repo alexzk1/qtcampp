@@ -3,7 +3,7 @@
 
 #include <string>
 
-namespace utils
+namespace utility
 {
     template<typename... Args>
     std::string string_format(const char* fmt, Args... args)

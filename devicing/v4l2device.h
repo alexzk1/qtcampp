@@ -18,15 +18,14 @@
 #include <functional>
 #include <stdint.h>
 #include "auto_closable.h"
-#include "frame_listener_v4l.h"
-#include "guardeds.h"
+#include "video_camera.h"
 
 #include <linux/videodev2.h>
 
 class v4l2device;
 using v4l2device_ptr = std::shared_ptr<v4l2device>;
 
-class v4l2device
+class v4l2device : public video_camera
 {
 public:
     class v4l2device_excp : public std::runtime_error
@@ -87,9 +86,6 @@ public:
     using mmapped_buffer_ptr  = std::shared_ptr<mmapped_buffer>;
 
     using device_formats_t    = std::vector<v4l2_fmtdesc>;
-    using interruptor_t       = std::atomic<bool>;
-    using interruptor_ptr     = std::shared_ptr<interruptor_t>;
-    using input_thread_ptr    = std::shared_ptr<std::thread>;
     using buffers_t           = std::vector<mmapped_buffer_ptr>;
 protected:
     using dev_hndl   = auto_closable<int>;
@@ -99,11 +95,8 @@ private:
     std::string m_device;
     bool usingWrapper;
     v4l2_capability m_capability;
-    interruptor_t interruptor;
-    input_thread_ptr m_thread;
     std::atomic<bool> sourcePixelFormatChanged;
-    using listeners_holder_t = guarded_map<std::string, frame_listener_ptr>;
-    listeners_holder_t namedListeners;
+
 protected:
     int     fd() const;
     bool    querycap(v4l2_capability &cap) const;
@@ -126,6 +119,7 @@ protected:
     int     set_fmt_cap(v4l2_format &fmt) const;
 
     //bool    enum_frame_sizes() const;
+    virtual utility::runner_f_t getInputFunction() override;
 public:
     v4l2device();
     v4l2device(const v4l2device&) = delete;
@@ -140,21 +134,15 @@ public:
     __u32 queryControlFlags(__u32 id);
 
     device_formats_t listFormats(__u32 type = V4L2_BUF_TYPE_VIDEO_CAPTURE);
+    int  setSourcePixelFormat( __u32 frm, __u32 type = V4L2_BUF_TYPE_VIDEO_CAPTURE);
+    bool open(const std::string& device, bool tryWraper);
 
     //device's state (opened, closed)
-    bool open(const std::string& device, bool tryWraper = false);
-    bool reopen(); //tries reopen
-    void close();
-    bool is_valid_yet(); //tests if device is connected/opened yet
+    virtual bool open(const std::string& device) override;
+    virtual bool reopen()override; //tries reopen
+    virtual void close()override;
+    virtual bool is_valid_yet() const override; //tests if device is connected/opened yet
 
-
-    //multithreaded camera capturing, setting
-    bool startCameraInput();
-    int  setSourcePixelFormat( __u32 frm, __u32 type = V4L2_BUF_TYPE_VIDEO_CAPTURE);
-    void stopCameraInput();
-    bool isCameraRunning();
-
-    void setNamedListener(const std::string& name, const frame_listener_ptr& listener); //2nd parameter as nullptr will remove it
 };
 
 #endif // V4L2DEVICE_H
