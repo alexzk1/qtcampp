@@ -22,9 +22,6 @@
 
 #include <linux/videodev2.h>
 
-class v4l2device;
-using v4l2device_ptr = std::shared_ptr<v4l2device>;
-
 class v4l2device : public video_camera
 {
 public:
@@ -52,7 +49,7 @@ public:
             devCaps(0)
         {}
 
-        v4l2device_ptr open(bool wrapper = false) const;
+        video_camera_ptr open(bool wrapper = false) const;
     };
 
     //unlike v4l menu this stores flag itself if item is text or numeric

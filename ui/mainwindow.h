@@ -12,7 +12,7 @@
 #include <QActionGroup>
 
 #include "saveable_widget.h"
-#include "deviceproperties.h"
+#include "v4l_deviceproperties.h"
 #include "ppm_p6_buffer.h"
 #include "video/videooutfile.h"
 
@@ -35,7 +35,7 @@ public:
     static qint64 getNextFileId();
     static qint64 getNextSeriesId();
 protected:
-    QPointer<DeviceProperties> lastPropPane;
+    QPointer<V4LDeviceProperties> lastPropPane;
 
     void changeEvent(QEvent *e);
     virtual void recurseRead(QSettings& settings, QObject* object) override;

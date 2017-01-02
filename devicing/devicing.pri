@@ -8,7 +8,6 @@ HEADERS += \
     $$PWD/no_const.h
 
 SOURCES += \
-    $$PWD/video_camera.cpp \
     $$PWD/frame_listener_base.cpp
 
 qtcampp{

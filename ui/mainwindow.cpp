@@ -95,7 +95,7 @@ MainWindow::MainWindow(QWidget *parent) :
                     QFile txt(QString("%1/used_settings.txt").arg(path));
                     txt.open(QIODevice::WriteOnly | QIODevice::Text);
                     QTextStream out(&txt);
-                    auto sl = lastPropPane->readAllValues();
+                    auto sl = lastPropPane->humanReadableSettings();
                     for (const auto& s : sl)
                         out << s <<"\n";
                 }
@@ -171,10 +171,10 @@ void MainWindow::on_actionSelect_Camera_triggered(bool prefferStored)
 
     //The widget becomes a child of the scroll area, and will be destroyed when the scroll area is deleted
     //or when a new widget is set.
-    ui->scrollControls->setWidget(lastPropPane = new DeviceProperties(dev));
+    ui->scrollControls->setWidget(lastPropPane = new V4LDeviceProperties(dev));
 
-    connect(lastPropPane, &DeviceProperties::deviceDisconnected, this, &MainWindow::device_lost, Qt::QueuedConnection);
-    connect(lastPropPane, &DeviceProperties::deviceRestored,     this, &MainWindow::device_back, Qt::QueuedConnection);
+    connect(lastPropPane, &V4LDeviceProperties::deviceDisconnected, this, &MainWindow::device_lost, Qt::QueuedConnection);
+    connect(lastPropPane, &V4LDeviceProperties::deviceRestored,     this, &MainWindow::device_back, Qt::QueuedConnection);
 
     //initial gui show
     auto devp = lastPropPane->getCurrDevice();

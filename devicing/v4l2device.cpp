@@ -419,7 +419,6 @@ void v4l2device::inputCameraFunction(const utility::runnerint_t &should_stop)
     }
     streamoff(cam_buf.type);
     free_buffers(buffers);
-
 }
 
 int v4l2device::setSourcePixelFormat(__u32 frm, __u32 type)
@@ -560,10 +559,10 @@ v4l2device::v4l2device_excp::~v4l2device_excp()
     //keeping VIRTUAL destructor in cpp file so virtual table will be created once
 }
 
-v4l2device_ptr v4l2device::device_info::open(bool wrapper) const
+video_camera_ptr v4l2device::device_info::open(bool wrapper) const
 {
-    v4l2device_ptr r(new v4l2device());
-    if (!r->open(sys_path, wrapper))
+    video_camera_ptr r(new v4l2device());
+    if (!r->as<v4l2device>()->open(sys_path, wrapper))
         r.reset();
     return r;
 }

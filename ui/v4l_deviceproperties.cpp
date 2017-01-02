@@ -1,6 +1,6 @@
 //License: MIT, (c) Oleksiy Zakharov, 2016, alexzkhr@gmail.com
 
-#include "deviceproperties.h"
+#include "v4l_deviceproperties.h"
 #include <QVBoxLayout>
 #include <QPushButton>
 #include <QDebug>
@@ -15,8 +15,8 @@ const static auto setPol = [](QWidget *w)
     w->setSizePolicy(pol);
 };
 
-DeviceProperties::DeviceProperties(const v4l2device::device_info device, QWidget *parent):
-    QWidget(parent),
+V4LDeviceProperties::V4LDeviceProperties(const v4l2device::device_info device, QWidget *parent):
+    DevicePropPaneBase(parent),
     settings_group(device.devname.c_str())
 {
 
@@ -33,7 +33,7 @@ DeviceProperties::DeviceProperties(const v4l2device::device_info device, QWidget
         presetLbl = new QLabel();
         presetLbl->setAlignment(Qt::AlignHCenter);
         layout->addWidget(presetLbl);
-        setSubgroup(0);
+        setSubgroupImpl(0);
 
         setPol(lbl);
         setLayout(layout);
@@ -60,7 +60,7 @@ DeviceProperties::DeviceProperties(const v4l2device::device_info device, QWidget
     }
 }
 
-DeviceProperties::~DeviceProperties()
+V4LDeviceProperties::~V4LDeviceProperties()
 {
     //widgets must be destroyed prior holded items or saveVertIndex(v) will give error
 
@@ -80,7 +80,7 @@ DeviceProperties::~DeviceProperties()
     s.endGroup();
 }
 
-QWidget* DeviceProperties::connectGUI(const DeviceProperties::widgetted_pt &ptr)
+QWidget* V4LDeviceProperties::connectGUI(const V4LDeviceProperties::widgetted_pt &ptr)
 {
     QWidget* w = nullptr;
     if (ptr)
@@ -94,12 +94,7 @@ QWidget* DeviceProperties::connectGUI(const DeviceProperties::widgetted_pt &ptr)
     return w;
 }
 
-v4l2device_ptr DeviceProperties::getCurrDevice() const
-{
-    return currDevice;
-}
-
-QStringList DeviceProperties::readAllValues() const
+QStringList V4LDeviceProperties::humanReadableSettings() const
 {
     QStringList res;
     for (const auto& v : holder)
@@ -113,7 +108,7 @@ QStringList DeviceProperties::readAllValues() const
     return res;
 }
 
-void DeviceProperties::controlValueChanged(const DeviceProperties::widgetted_pt &p, const v4l2_query_ext_ctrl &c)
+void V4LDeviceProperties::controlValueChanged(const V4LDeviceProperties::widgetted_pt &p, const v4l2_query_ext_ctrl &c)
 {
     //lambda in constructor grow too big, so moved part of it here
     bool fl = (c.type & V4L2_CTRL_FLAG_HAS_PAYLOAD);//todo: when string/matrix processing will be added - fix here too, until that - ignoring
@@ -130,21 +125,21 @@ void DeviceProperties::controlValueChanged(const DeviceProperties::widgetted_pt 
                 val = cb->getUserData().toLongLong();
             }
         }
-        int r = currDevice->setControlValue(c, val);
+        int r = currDevice->as<v4l2device>()->setControlValue(c, val);
 #ifdef _DEBUG
         qDebug() <<"Value "<<val<<c.name<<c.id<<" set code: " << r;
 #endif
         if (r < 0)
-            tryReconnectOnError();
+            tryReconnectOnErrorImpl();
 
         //if (isNeedUpdate(c)) // on my sample camera this flag is not set, so must do full update of controls
-        updateControls();
+        updateControlsImpl();
     }
 }
 
-void DeviceProperties::listControls()
+void V4LDeviceProperties::listControls()
 {
-    controls = currDevice->listControls();
+    controls = currDevice->as<v4l2device>()->listControls();
     for (const auto& c : controls)
     {
         //that is only 1 place where I do read real values from device - defaults, anything else inside device is ignored
@@ -180,7 +175,7 @@ void DeviceProperties::listControls()
             {
                 //menus are meajured in own indexes, i.e. some maybe skipped like 1,4,8 are valids only, but we will have it stored as 0-1-2
                 //so need to remap it...
-                auto menu = currDevice->listMenuForControl(c);
+                auto menu = currDevice->as<v4l2device>()->listMenuForControl(c);
                 int def = 0;
                 for (const auto &m : menu)
                 {
@@ -229,9 +224,9 @@ void DeviceProperties::listControls()
     }
 }
 
-void DeviceProperties::listFormats()
+void V4LDeviceProperties::listFormats()
 {
-    auto fmts = currDevice->listFormats();
+    auto fmts = currDevice->as<v4l2device>()->listFormats();
     if (fmts.size())
     {
         widgetted_pt ptr;
@@ -261,7 +256,7 @@ void DeviceProperties::listFormats()
                 currentPixelFormatSelected = val;
                 //push to device
                 if (currDevice)
-                    currDevice->setSourcePixelFormat(val);
+                    currDevice->as<v4l2device>()->setSourcePixelFormat(val);
             }
 
         }, Qt::QueuedConnection);
@@ -270,24 +265,24 @@ void DeviceProperties::listFormats()
     }
 }
 
-bool DeviceProperties::isEnabled(const v4l2_query_ext_ctrl &c)
+bool V4LDeviceProperties::isEnabled(const v4l2_query_ext_ctrl &c)
 {
     return isEnabled(c.flags);
 }
 
-bool DeviceProperties::isEnabled(__u32 flags)
+bool V4LDeviceProperties::isEnabled(__u32 flags)
 {
     return !(flags & V4L2_CTRL_FLAG_INACTIVE) && !(flags & V4L2_CTRL_FLAG_READ_ONLY);
 }
 
-bool DeviceProperties::isNeedUpdate(const v4l2_query_ext_ctrl &c)
+bool V4LDeviceProperties::isNeedUpdate(const v4l2_query_ext_ctrl &c)
 {
     //qDebug() << c.flags;
     return c.flags & V4L2_CTRL_FLAG_UPDATE;
 }
 
 
-void DeviceProperties::resetToDefaults()
+void V4LDeviceProperties::resetToDefaultsImpl()
 {
     for (auto & v : holder)
     {
@@ -295,7 +290,7 @@ void DeviceProperties::resetToDefaults()
     }
 }
 
-void DeviceProperties::reapplyAll()
+void V4LDeviceProperties::reapplyAllImpl()
 {
     for (auto & v : holder)
     {
@@ -303,7 +298,7 @@ void DeviceProperties::reapplyAll()
     }
 }
 
-void DeviceProperties::tryReconnectOnError()
+void V4LDeviceProperties::tryReconnectOnErrorImpl()
 {
     if (currDevice)
     {
@@ -316,7 +311,7 @@ void DeviceProperties::tryReconnectOnError()
                 //to avoid recursion - doing by timer
                 QTimer::singleShot(100, this, [this]()
                 {
-                    reapplyAll(); //not sure what if device is going to lose connection inside that loop, maybe it will trigger recursive reapplies, some will be repeated a lot
+                    reapplyAllImpl(); //not sure what if device is going to lose connection inside that loop, maybe it will trigger recursive reapplies, some will be repeated a lot
                     emit deviceRestored();
 
                 });
@@ -334,7 +329,7 @@ void DeviceProperties::tryReconnectOnError()
 
 }
 
-void DeviceProperties::updateControls()
+void V4LDeviceProperties::updateControlsImpl()
 {
     for (auto & v : holder)
     {
@@ -342,7 +337,7 @@ void DeviceProperties::updateControls()
         {
             if (currDevice)
             {
-                auto flags = currDevice->queryControlFlags(v.first);
+                auto flags = currDevice->as<v4l2device>()->queryControlFlags(v.first);
                 if (v.second->lastWidget)
                     v.second->lastWidget->setEnabled(isEnabled(flags));
             }
@@ -352,7 +347,7 @@ void DeviceProperties::updateControls()
     }
 }
 
-void DeviceProperties::setSubgroup(int id)
+void V4LDeviceProperties::setSubgroupImpl(int id)
 {
 
     if (presetLbl)
