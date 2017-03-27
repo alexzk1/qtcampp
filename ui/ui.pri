@@ -4,27 +4,27 @@ HEADERS += \
     $$PWD/variant_convert.h \
     $$PWD/mainwindow.h \
     $$PWD/saveable_widget.h \
-    $$PWD/selectdevicedialog.h \
     $$PWD/settingsdialog.h \
     $$PWD/ppm_p6_buffer.h \
     $$PWD/utils.h \
     $$PWD/dndwidget.h \
-    $$PWD/deviceproppanebase.h
+    $$PWD/deviceproppanebase.h \
+    $$PWD/v4l_selectdevicedialog.h
 
 SOURCES += \
     $$PWD/globalsettings.cpp \
     $$PWD/mainwindow.cpp \
     $$PWD/glob_statics_settings.cpp \
-    $$PWD/selectdevicedialog.cpp \
     $$PWD/settingsdialog.cpp \
     $$PWD/ppm_p6_buffer.cpp \
     $$PWD/dndwidget.cpp \
-    $$PWD/deviceproppanebase.cpp
+    $$PWD/deviceproppanebase.cpp \
+    $$PWD/v4l_selectdevicedialog.cpp
 
 FORMS += \
     $$PWD/mainwindow.ui \
-    $$PWD/selectdevicedialog.ui \
-    $$PWD/settingsdialog.ui
+    $$PWD/settingsdialog.ui \
+    $$PWD/v4l_selectdevicedialog.ui
 
 v4ldevices{
   HEADERS += \
@@ -32,4 +32,7 @@ v4ldevices{
 
   SOURCES += \
     $$PWD/v4l_deviceproperties.cpp
+}
+
+ptpdevices{
 }

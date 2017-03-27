@@ -7,10 +7,10 @@
 #include "saveable_widget.h"
 
 namespace Ui {
-    class SelectDeviceDialog;
+    class V4LSelectDeviceDialog;
 }
 
-class SelectDeviceDialog : public QDialog, protected virtual SaveableWidget
+class V4LSelectDeviceDialog : public QDialog, protected virtual SaveableWidget
 {
     Q_OBJECT
 
@@ -19,9 +19,9 @@ public:
 
 protected:
 
-    SelectDeviceDialog() = delete;
-    explicit SelectDeviceDialog(QWidget *parent = 0);
-    virtual ~SelectDeviceDialog();
+    V4LSelectDeviceDialog() = delete;
+    explicit V4LSelectDeviceDialog(QWidget *parent = 0);
+    virtual ~V4LSelectDeviceDialog();
 
     void changeEvent(QEvent *e);
     void updateList(const v4l2device::devices_list_t &devs);
@@ -30,7 +30,7 @@ private slots:
     void on_listDevices_doubleClicked(const QModelIndex &index);
 
 private:
-    Ui::SelectDeviceDialog *ui;
+    Ui::V4LSelectDeviceDialog *ui;
     v4l2device::devices_list_t devices;
 };
 

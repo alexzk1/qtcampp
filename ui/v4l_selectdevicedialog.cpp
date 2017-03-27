@@ -1,17 +1,17 @@
-#include "selectdevicedialog.h"
-#include "ui_selectdevicedialog.h"
+#include "v4l_selectdevicedialog.h"
+#include "ui_v4l_selectdevicedialog.h"
 #include "globalsettings.h"
 //License: MIT, (c) Oleksiy Zakharov, 2016, alexzkhr@gmail.com
 
-SelectDeviceDialog::SelectDeviceDialog(QWidget *parent) :
+V4LSelectDeviceDialog::V4LSelectDeviceDialog(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::SelectDeviceDialog)
+    ui(new Ui::V4LSelectDeviceDialog)
 {
     ui->setupUi(this);
     readSettings(this);
 }
 
-v4l2device::device_info SelectDeviceDialog::pickDevice(QWidget* owner, bool prefferStored)
+v4l2device::device_info V4LSelectDeviceDialog::pickDevice(QWidget* owner, bool prefferStored)
 {
     auto devices = v4l2device::list_attached_devices();
     GlobSaveableTempl<QString, false> stored("LastUsedDeviceName");
@@ -29,7 +29,7 @@ v4l2device::device_info SelectDeviceDialog::pickDevice(QWidget* owner, bool pref
     v4l2device::device_info res;
     if (devices.size() || !prefferStored) //if prefferedStored but no devices connected - do not popup
     {
-        SelectDeviceDialog dialog(owner);
+        V4LSelectDeviceDialog dialog(owner);
         dialog.updateList(devices);
         if (QDialog::Accepted == dialog.exec())
         {
@@ -42,13 +42,13 @@ v4l2device::device_info SelectDeviceDialog::pickDevice(QWidget* owner, bool pref
     return res;
 }
 
-SelectDeviceDialog::~SelectDeviceDialog()
+V4LSelectDeviceDialog::~V4LSelectDeviceDialog()
 {
     writeSettings(this);
     delete ui;
 }
 
-v4l2device::device_info SelectDeviceDialog::getSelected()
+v4l2device::device_info V4LSelectDeviceDialog::getSelected()
 {
     v4l2device::device_info r;
     auto curr = ui->listDevices->currentIndex();
@@ -59,7 +59,7 @@ v4l2device::device_info SelectDeviceDialog::getSelected()
     return r;
 }
 
-void SelectDeviceDialog::changeEvent(QEvent *e)
+void V4LSelectDeviceDialog::changeEvent(QEvent *e)
 {
     QDialog::changeEvent(e);
     switch (e->type()) {
@@ -71,7 +71,7 @@ void SelectDeviceDialog::changeEvent(QEvent *e)
     }
 }
 
-void SelectDeviceDialog::updateList(const v4l2device::devices_list_t &devs)
+void V4LSelectDeviceDialog::updateList(const v4l2device::devices_list_t &devs)
 {
     devices = devs;
     ui->listDevices->clear();
@@ -83,7 +83,7 @@ void SelectDeviceDialog::updateList(const v4l2device::devices_list_t &devs)
     }
 }
 
-void SelectDeviceDialog::on_listDevices_doubleClicked(const QModelIndex &index)
+void V4LSelectDeviceDialog::on_listDevices_doubleClicked(const QModelIndex &index)
 {
     if (index.isValid())
         accept();

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>SelectDeviceDialog</class>
- <widget class="QDialog" name="SelectDeviceDialog">
+ <class>V4LSelectDeviceDialog</class>
+ <widget class="QDialog" name="V4LSelectDeviceDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -43,7 +43,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>SelectDeviceDialog</receiver>
+   <receiver>V4LSelectDeviceDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -59,7 +59,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>SelectDeviceDialog</receiver>
+   <receiver>V4LSelectDeviceDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

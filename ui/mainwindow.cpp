@@ -15,7 +15,7 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "selectdevicedialog.h"
+#include "v4l_selectdevicedialog.h"
 #include "settingsdialog.h"
 
 #ifdef CAMPP_TOOLS_USED
@@ -167,7 +167,7 @@ void MainWindow::recurseWrite(QSettings &settings, QObject *object)
 
 void MainWindow::on_actionSelect_Camera_triggered(bool prefferStored)
 {
-    auto dev = SelectDeviceDialog::pickDevice(this, prefferStored);
+    auto dev = V4LSelectDeviceDialog::pickDevice(this, prefferStored);
 
     //The widget becomes a child of the scroll area, and will be destroyed when the scroll area is deleted
     //or when a new widget is set.
