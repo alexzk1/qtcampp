@@ -21,6 +21,7 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
     auto wl = sett.createWidgets();
     for (const auto& wi : wl)
     {
+        wi->setParent(this);
         layout->addWidget(wi);
     }
 }
