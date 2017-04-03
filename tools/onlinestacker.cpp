@@ -65,7 +65,8 @@ void OnlineStacker::initBySize(size_t size)
 
         for (auto& v: images)
         {
-            v = std::make_shared<QueuedElement>();
+            //http://stackoverflow.com/questions/20895648/difference-in-make-shared-and-normal-shared-ptr-in-c
+            v = std::shared_ptr<QueuedElement>(new QueuedElement());
             v->resize(size, 0);
         }
     }

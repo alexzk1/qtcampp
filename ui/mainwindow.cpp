@@ -436,7 +436,8 @@ void MainWindow::buildFilters()
     auto q1 = static_cast<size_t>(StaticSettingsMap::getGlobalSetts().readInt("NoiseFilter"));
     if (q1)
     {
-        auto f1 = std::make_shared<OnlineStacker>();
+        //http://stackoverflow.com/questions/20895648/difference-in-make-shared-and-normal-shared-ptr-in-c
+        auto f1 = std::shared_ptr<OnlineStacker>(new OnlineStacker());
         f1->setFilterQuality(q1);
         filters.push_back(f1);
     }
