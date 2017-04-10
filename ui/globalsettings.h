@@ -444,6 +444,10 @@ STORABLE_ATOMIC_CLASS(GlobalStorableInt, int)
         }, Qt::QueuedConnection);
         return createLabeledField(field);
     }
+    static QString updateHint(const QString& hint, ValueType min, ValueType max)
+    {
+        return QString(tr("%1\nRange: %2-%3")).arg(hint).arg(min).arg(max);
+    }
     public:
     virtual void needUpdateWidget() override
     {
@@ -456,7 +460,7 @@ STORABLE_ATOMIC_CLASS(GlobalStorableInt, int)
     }
     GlobalStorableInt() = delete;
     GlobalStorableInt(const QString& key, const ValueType& def, const QString& text, const QString& hint, ValueType min, ValueType max, ValueType step = 1):
-        UserHintHolderForSettings(text, hint) ,SaveableWidgetTempl(key, def / step),
+        UserHintHolderForSettings(text, updateHint(hint, min, max)) ,SaveableWidgetTempl(key, def / step),
         min(min), max(max), step(step)
     {
         field = nullptr;
