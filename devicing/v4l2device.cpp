@@ -80,7 +80,7 @@ v4l2device::devices_list_t v4l2device::list_attached_devices(v4l2device::ListTyp
                     v4l2_capability cap;
                     tmp.querycap(cap);
                     tmp.close();
-                    inf.devname = std::string(utility::union_cast<const char*>(cap.card));
+                    inf.devname = std::string(reinterpret_cast<const char*>(cap.card));
                     inf.devCaps = cap.device_caps;
 
                     res.push_back(inf);
@@ -180,14 +180,14 @@ bool v4l2device::open(const std::string &device)
 
 bool v4l2device::reopen()
 {
-    std::string currName(utility::union_cast<const char*>(m_capability.card));
+    std::string currName(reinterpret_cast<const char*>(m_capability.card));
     std::string d = m_device;
     auto ca = m_capability;
     bool w = usingWrapper;
 
     auto r = open(d, usingWrapper);
 
-    if (r && currName != std::string(utility::union_cast<const char*>(m_capability.card)))
+    if (r && currName != std::string(reinterpret_cast<const char*>(m_capability.card)))
     {
         close(); //opened something, but it's other device
         r = false;

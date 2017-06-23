@@ -12,6 +12,7 @@ CONFIG += ptpdevices #enables ptp cameras
 
 QMAKE_CXXFLAGS += -std=c++11 -Wall -Werror=strict-aliasing -fstrict-aliasing -Wctor-dtor-privacy -Werror=delete-non-virtual-dtor
 QMAKE_CXXFLAGS += -fexceptions -Werror=return-type -Werror=overloaded-virtual
+QMAKE_CXXFLAGS +=  -Werror=strict-aliasing -Wstrict-aliasing=2
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 

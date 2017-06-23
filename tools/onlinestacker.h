@@ -11,7 +11,7 @@ class OnlineStacker : public ILiveFilter
 {
 public:
 
-    using RGBVectorSum  = std::vector<uint32_t>;
+    using RGBVectorSum  = std::vector<uint64_t>;
     using QueuedElement = RGBVector;
     using RGBQueue      = std::deque<std::shared_ptr<QueuedElement>>;
 private:
