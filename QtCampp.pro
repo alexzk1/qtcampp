@@ -16,7 +16,7 @@ QMAKE_CXXFLAGS +=  -Werror=strict-aliasing -Wstrict-aliasing=2
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-CONFIG(debug)
+CONFIG(debug, debug|release)
 {
    DEFINES += _DEBUG
 }
